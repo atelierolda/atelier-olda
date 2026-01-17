@@ -70,6 +70,8 @@ export default function CatalogueCommande() {
         })
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
         setMontrerMerci(true);
         setTimeout(() => {
@@ -79,12 +81,12 @@ export default function CatalogueCommande() {
           setCommentaire('');
           setMontrerMerci(false);
           setPanierOuvert(false);
-        }, 3000);
+        }, 4000);
       } else {
-        alert('Erreur lors de l\'envoi');
+        alert('Erreur: ' + (data.message || 'Problème lors de l\'envoi'));
       }
     } catch (error) {
-      alert('Erreur: ' + error.message);
+      alert('Erreur de connexion: ' + error.message);
     } finally {
       setEnvoiEnCours(false);
     }
@@ -96,12 +98,13 @@ export default function CatalogueCommande() {
       minHeight: '100vh',
       backgroundColor: '#fbfbfd'
     }}>
-      {/* Header minimaliste */}
+      {/* Header */}
       <nav style={{
         position: 'sticky',
         top: 0,
         backgroundColor: 'rgba(251, 251, 253, 0.8)',
         backdropFilter: 'saturate(180%) blur(20px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
         borderBottom: '1px solid rgba(0,0,0,0.05)',
         padding: '12px 0',
         zIndex: 100
@@ -109,17 +112,16 @@ export default function CatalogueCommande() {
         <div style={{
           maxWidth: '1400px',
           margin: '0 auto',
-          padding: '0 48px',
+          padding: '0 max(20px, env(safe-area-inset-left))',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          {/* Logo Olda à gauche */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <img 
               src="/images/logo.png" 
               alt="Olda" 
-              style={{ height: '32px', width: 'auto' }}
+              style={{ height: '28px', width: 'auto' }}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'block';
@@ -127,7 +129,7 @@ export default function CatalogueCommande() {
             />
             <span style={{ 
               display: 'none',
-              fontSize: '20px', 
+              fontSize: '18px', 
               fontWeight: '600',
               color: '#1d1d1f',
               letterSpacing: '-0.01em'
@@ -136,7 +138,6 @@ export default function CatalogueCommande() {
             </span>
           </div>
           
-          {/* Icône panier Apple */}
           <button
             onClick={() => setPanierOuvert(true)}
             style={{
@@ -149,7 +150,7 @@ export default function CatalogueCommande() {
               alignItems: 'center'
             }}
           >
-            <svg width="17" height="20" viewBox="0 0 17 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="16" height="19" viewBox="0 0 17 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M0.5 2.5H2.5L4.5 17.5H14.5L16.5 7.5H3.5" stroke="#1d1d1f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             {totalArticles > 0 && (
@@ -171,15 +172,15 @@ export default function CatalogueCommande() {
         </div>
       </nav>
 
-      {/* Hero ultra minimaliste */}
+      {/* Hero */}
       <div style={{
         textAlign: 'center',
-        padding: '80px 24px 60px',
+        padding: '60px 20px 40px',
         maxWidth: '980px',
         margin: '0 auto'
       }}>
         <h1 style={{
-          fontSize: '56px',
+          fontSize: 'clamp(32px, 8vw, 56px)',
           fontWeight: '600',
           margin: '0',
           color: '#1d1d1f',
@@ -190,31 +191,30 @@ export default function CatalogueCommande() {
         </h1>
       </div>
 
-      {/* Grid produits ultra clean */}
+      {/* Grid produits */}
       <div style={{
         maxWidth: '1400px',
         margin: '0 auto',
-        padding: '0 48px 120px'
+        padding: '0 20px 80px'
       }}>
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', 
           gap: '12px'
         }}>
           {produits.map(produit => (
             <div key={produit.id} style={{
               backgroundColor: 'white',
               borderRadius: '18px',
-              padding: '32px 24px',
-              border: '1px solid rgba(0,0,0,0.04)',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              padding: '20px',
+              border: '1px solid rgba(0,0,0,0.04)'
             }}>
-              {/* Image et texte */}
+              {/* Image à gauche + Texte à droite */}
               <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '20px',
-                marginBottom: '24px'
+                gap: '16px',
+                marginBottom: '16px'
               }}>
                 {produit.image && (
                   <img 
@@ -223,14 +223,15 @@ export default function CatalogueCommande() {
                     style={{ 
                       height: '2.5cm', 
                       width: 'auto', 
-                      objectFit: 'contain'
+                      objectFit: 'contain',
+                      flexShrink: 0
                     }}
                   />
                 )}
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ 
                     margin: '0 0 4px 0', 
-                    fontSize: '19px', 
+                    fontSize: '17px', 
                     fontWeight: '600',
                     color: '#1d1d1f',
                     letterSpacing: '-0.01em'
@@ -239,7 +240,7 @@ export default function CatalogueCommande() {
                   </p>
                   <p style={{ 
                     margin: 0, 
-                    fontSize: '14px', 
+                    fontSize: '13px', 
                     color: '#86868b',
                     fontWeight: '400'
                   }}>
@@ -248,11 +249,11 @@ export default function CatalogueCommande() {
                 </div>
               </div>
               
-              {/* Dropdown quantité façon Apple */}
+              {/* Dropdown + Bouton */}
               <div style={{ 
                 display: 'flex', 
-                gap: '12px',
-                alignItems: 'center'
+                gap: '8px',
+                alignItems: 'stretch'
               }}>
                 <select
                   value={quantiteSelectionnee[produit.id] || 1}
@@ -261,20 +262,21 @@ export default function CatalogueCommande() {
                     [produit.id]: parseInt(e.target.value)
                   })}
                   style={{
-                    flex: 1,
-                    padding: '12px 16px',
+                    width: '70px',
+                    padding: '10px 8px',
                     backgroundColor: 'white',
                     border: '1px solid #d2d2d7',
-                    borderRadius: '12px',
-                    fontSize: '17px',
+                    borderRadius: '10px',
+                    fontSize: '15px',
                     color: '#1d1d1f',
                     cursor: 'pointer',
                     appearance: 'none',
                     backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")',
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 12px center',
-                    backgroundSize: '16px',
-                    paddingRight: '40px'
+                    backgroundPosition: 'right 4px center',
+                    backgroundSize: '14px',
+                    paddingRight: '24px',
+                    textAlign: 'center'
                   }}
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50].map(num => (
@@ -285,15 +287,16 @@ export default function CatalogueCommande() {
                 <button
                   onClick={() => ajouterAuPanier(produit, quantiteSelectionnee[produit.id] || 1)}
                   style={{
-                    padding: '12px 24px',
+                    flex: 1,
+                    padding: '10px 16px',
                     backgroundColor: '#0071e3',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '12px',
+                    borderRadius: '10px',
                     fontSize: '15px',
                     fontWeight: '500',
                     cursor: 'pointer',
-                    transition: 'all 0.2s',
+                    transition: 'background-color 0.2s',
                     whiteSpace: 'nowrap'
                   }}
                   onMouseOver={(e) => e.target.style.backgroundColor = '#0077ED'}
@@ -320,10 +323,11 @@ export default function CatalogueCommande() {
           justifyContent: 'center',
           alignItems: 'center',
           zIndex: 1000,
-          padding: '24px',
-          backdropFilter: 'blur(20px)'
+          padding: '20px',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)'
         }}
-        onClick={() => setPanierOuvert(false)}
+        onClick={() => !montrerMerci && setPanierOuvert(false)}
         >
           <div style={{
             backgroundColor: 'white',
@@ -349,45 +353,48 @@ export default function CatalogueCommande() {
                   ✓
                 </div>
                 <h2 style={{ 
-                  fontSize: '40px', 
+                  fontSize: 'clamp(28px, 5vw, 40px)', 
                   fontWeight: '600', 
                   color: '#1d1d1f',
-                  margin: '0 0 12px 0',
-                  letterSpacing: '-0.02em'
+                  margin: '0 0 16px 0',
+                  letterSpacing: '-0.02em',
+                  lineHeight: '1.1'
                 }}>
-                  Merci
+                  Atelier OLDA vous remercie pour votre commande
                 </h2>
-                <p style={{ 
-                  fontSize: '19px', 
-                  color: '#86868b',
-                  margin: 0,
-                  fontWeight: '400'
-                }}>
-                  Votre commande a été envoyée
-                </p>
               </div>
             ) : (
               <>
                 <div style={{ 
-                  padding: '40px 40px 32px',
+                  padding: 'clamp(24px, 5vw, 40px)',
                   borderBottom: '1px solid rgba(0,0,0,0.04)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2 style={{ 
-                      margin: 0, 
-                      fontSize: '32px', 
-                      fontWeight: '600',
-                      color: '#1d1d1f',
-                      letterSpacing: '-0.02em'
-                    }}>
-                      Panier
-                    </h2>
+                    <div>
+                      <h2 style={{ 
+                        margin: '0 0 4px 0', 
+                        fontSize: 'clamp(24px, 4vw, 32px)', 
+                        fontWeight: '600',
+                        color: '#1d1d1f',
+                        letterSpacing: '-0.02em'
+                      }}>
+                        Panier
+                      </h2>
+                      <p style={{ 
+                        margin: 0, 
+                        color: '#86868b',
+                        fontSize: '15px',
+                        fontWeight: '400'
+                      }}>
+                        {totalArticles} article{totalArticles > 1 ? 's' : ''}
+                      </p>
+                    </div>
                     <button
                       onClick={() => setPanierOuvert(false)}
                       style={{
                         backgroundColor: 'transparent',
                         border: 'none',
-                        fontSize: '28px',
+                        fontSize: '32px',
                         color: '#86868b',
                         cursor: 'pointer',
                         padding: '4px',
@@ -397,22 +404,14 @@ export default function CatalogueCommande() {
                       ×
                     </button>
                   </div>
-                  <p style={{ 
-                    margin: '8px 0 0 0', 
-                    color: '#86868b',
-                    fontSize: '17px',
-                    fontWeight: '400'
-                  }}>
-                    {totalArticles} article{totalArticles > 1 ? 's' : ''}
-                  </p>
                 </div>
 
-                <div style={{ padding: '32px 40px 40px' }}>
+                <div style={{ padding: 'clamp(24px, 5vw, 32px)' }}>
                   {panier.length === 0 ? (
                     <p style={{ 
                       textAlign: 'center', 
                       color: '#86868b',
-                      fontSize: '19px',
+                      fontSize: '17px',
                       padding: '40px 0',
                       margin: 0
                     }}>
@@ -420,19 +419,19 @@ export default function CatalogueCommande() {
                     </p>
                   ) : (
                     <>
-                      <div style={{ marginBottom: '32px' }}>
+                      <div style={{ marginBottom: '24px' }}>
                         {panier.map(item => (
                           <div key={item.id} style={{ 
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            padding: '20px 0',
+                            padding: '16px 0',
                             borderBottom: '1px solid rgba(0,0,0,0.04)'
                           }}>
-                            <div style={{ flex: 1 }}>
+                            <div style={{ flex: 1, minWidth: 0, paddingRight: '16px' }}>
                               <p style={{ 
                                 margin: '0 0 4px 0',
-                                fontSize: '17px',
+                                fontSize: '16px',
                                 fontWeight: '600',
                                 color: '#1d1d1f'
                               }}>
@@ -440,38 +439,32 @@ export default function CatalogueCommande() {
                               </p>
                               <p style={{ 
                                 margin: 0,
-                                fontSize: '14px',
+                                fontSize: '13px',
                                 color: '#86868b'
                               }}>
                                 {item.reference}
                               </p>
                             </div>
-                            <div style={{ 
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '16px'
-                            }}>
-                              <input 
-                                type="number"
-                                min="0"
-                                value={item.quantite}
-                                onChange={(e) => updateQuantite(item.id, e.target.value)}
-                                style={{ 
-                                  width: '70px',
-                                  padding: '10px',
-                                  border: '1px solid #d2d2d7',
-                                  borderRadius: '10px',
-                                  fontSize: '17px',
-                                  textAlign: 'center',
-                                  fontWeight: '500'
-                                }}
-                              />
-                            </div>
+                            <input 
+                              type="number"
+                              min="0"
+                              value={item.quantite}
+                              onChange={(e) => updateQuantite(item.id, e.target.value)}
+                              style={{ 
+                                width: '65px',
+                                padding: '8px',
+                                border: '1px solid #d2d2d7',
+                                borderRadius: '8px',
+                                fontSize: '15px',
+                                textAlign: 'center',
+                                fontWeight: '500'
+                              }}
+                            />
                           </div>
                         ))}
                       </div>
 
-                      <div style={{ marginBottom: '32px' }}>
+                      <div style={{ marginBottom: '24px' }}>
                         <input 
                           type="text"
                           placeholder="Nom"
@@ -479,11 +472,11 @@ export default function CatalogueCommande() {
                           onChange={(e) => setNomClient(e.target.value)}
                           style={{ 
                             width: '100%',
-                            padding: '16px',
-                            marginBottom: '12px',
+                            padding: '14px',
+                            marginBottom: '10px',
                             border: '1px solid #d2d2d7',
-                            borderRadius: '12px',
-                            fontSize: '17px',
+                            borderRadius: '10px',
+                            fontSize: '16px',
                             boxSizing: 'border-box',
                             fontFamily: 'inherit'
                           }}
@@ -496,11 +489,11 @@ export default function CatalogueCommande() {
                           onChange={(e) => setEmailClient(e.target.value)}
                           style={{ 
                             width: '100%',
-                            padding: '16px',
-                            marginBottom: '12px',
+                            padding: '14px',
+                            marginBottom: '10px',
                             border: '1px solid #d2d2d7',
-                            borderRadius: '12px',
-                            fontSize: '17px',
+                            borderRadius: '10px',
+                            fontSize: '16px',
                             boxSizing: 'border-box',
                             fontFamily: 'inherit'
                           }}
@@ -512,11 +505,11 @@ export default function CatalogueCommande() {
                           onChange={(e) => setCommentaire(e.target.value)}
                           style={{ 
                             width: '100%',
-                            padding: '16px',
+                            padding: '14px',
                             border: '1px solid #d2d2d7',
-                            borderRadius: '12px',
-                            fontSize: '17px',
-                            minHeight: '100px',
+                            borderRadius: '10px',
+                            fontSize: '16px',
+                            minHeight: '80px',
                             boxSizing: 'border-box',
                             fontFamily: 'inherit',
                             resize: 'vertical'
@@ -529,15 +522,15 @@ export default function CatalogueCommande() {
                         disabled={envoiEnCours}
                         style={{
                           width: '100%',
-                          padding: '16px',
+                          padding: '14px',
                           backgroundColor: envoiEnCours ? '#d2d2d7' : '#0071e3',
                           color: 'white',
                           border: 'none',
-                          borderRadius: '12px',
+                          borderRadius: '10px',
                           fontSize: '17px',
                           fontWeight: '600',
                           cursor: envoiEnCours ? 'not-allowed' : 'pointer',
-                          transition: 'all 0.2s'
+                          transition: 'background-color 0.2s'
                         }}
                       >
                         {envoiEnCours ? 'Envoi en cours...' : 'Commander'}
