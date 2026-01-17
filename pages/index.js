@@ -191,13 +191,24 @@ export default function CatalogueCommande() {
             ) : (
               <>
                 {produit.image && (
-                  <img 
-                    src={produit.image} 
-                    alt={produit.couleur}
-                    style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', marginBottom: '15px' }}>
+                    <img 
+                      src={produit.image} 
+                      alt={produit.couleur}
+                      style={{ 
+                        height: '2.5cm', 
+                        width: 'auto', 
+                        objectFit: 'contain', 
+                        borderRadius: '5px',
+                        flexShrink: 0
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: '0 0 5px 0', fontSize: '16px', fontWeight: 'bold' }}>Tasse Céramique</p>
+                      <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>{produit.couleur}</p>
+                    </div>
+                  </div>
                 )}
-                <p><strong>Couleur:</strong> {produit.couleur}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <label>Quantité:</label>
                   <input 
