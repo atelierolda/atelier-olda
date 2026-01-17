@@ -17,7 +17,7 @@ export default function CatalogueCommande() {
   ]);
 
   const [produitsFuck] = useState([
-    { id: 11, reference: 'TF 01', image: '/images/mugs/fuckblancnoir.JPG', couleur: 'Blanc & Noir', quantite: 0 }
+    { id: 11, reference: 'TF 01', image: '/images/mugs/Fuckblancnoir.JPG', couleur: 'Blanc & Noir', quantite: 0 }
   ]);
 
   const [panier, setPanier] = useState([]);
