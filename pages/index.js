@@ -46,4 +46,5 @@ export default function CatalogueCommande() {
     ));
   };
 
-  const updateQuantite = (id, q​​​​​​​​​​​​​​​​
+  const updateQuantite = (id, quantite) => {
+
