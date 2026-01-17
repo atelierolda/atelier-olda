@@ -1,19 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 const COLLECTIONS = {
-  nouveautes: [{ id: 101, reference: 'NW 01', image: '/images/mugs/nouveaute1.jpg', couleur: 'Édition Aurore' }],
+  nouveautes: [
+    { id: 101, reference: 'NW 01', image: '/images/mugs/nouveaute1.jpg', couleur: 'Édition Aurore' },
+  ],
   olda: [
     { id: 1, reference: 'TC 01', image: '/images/mugs/roseblanc.jpg', couleur: 'Rose & Blanc' },
-    { id: 2, reference: 'TC 02', image: '/images/mugs/rougeblanc.jpg', couleur: 'Rouge & Blanc' }
+    { id: 2, reference: 'TC 02', image: '/images/mugs/rougeblanc.jpg', couleur: 'Rouge & Blanc' },
+    { id: 3, reference: 'TC 03', image: '/images/mugs/orangeblanc.jpg', couleur: 'Orange & Blanc' },
+    { id: 4, reference: 'TC 04', image: '/images/mugs/vertblanc.jpg', couleur: 'Vert & Blanc' },
+    { id: 5, reference: 'TC 05', image: '/images/mugs/noirblanc.jpg', couleur: 'Noir & Blanc' },
+    { id: 6, reference: 'TC 06', image: '/images/mugs/noirrose.JPG', couleur: 'Noir & Rose' },
+    { id: 7, reference: 'TC 07', image: '/images/mugs/noirrouge.JPG', couleur: 'Noir & Rouge' },
+    { id: 8, reference: 'TC 08', image: '/images/mugs/noirorange.JPG', couleur: 'Noir & Orange' },
+    { id: 9, reference: 'TC 09', image: '/images/mugs/noirjaune.JPG', couleur: 'Noir & Jaune' },
+    { id: 10, reference: 'TC 10', image: '/images/mugs/noirvert.JPG', couleur: 'Noir & Vert' }
   ],
-  fuck: [{ id: 11, reference: 'TF 01', image: '/images/mugs/Fuckblancnoir.JPG', couleur: 'Blanc & Noir' }],
-  discount: [{ id: 201, reference: 'DS 01', image: '/images/mugs/promo.jpg', couleur: 'Offre Spéciale' }]
+  fuck: [
+    { id: 11, reference: 'TF 01', image: '/images/mugs/Fuckblancnoir.JPG', couleur: 'Blanc & Noir' }
+  ],
+  discount: [
+    { id: 201, reference: 'DS 01', image: '/images/mugs/promo.jpg', couleur: 'Offre Spéciale' }
+  ]
 };
 
 export default function Home() {
   const [collectionActive, setCollectionActive] = useState('olda');
   const [panier, setPanier] = useState([]);
-  const [quantites, setQuantites] = useState({});
+  const [quantites, setQuantites] = useState({}); 
+  const [feedbackAjout, setFeedbackAjout] = useState({});
 
   const tabs = [
     { id: 'nouveautes', label: 'Nouveautés' },
@@ -30,31 +45,61 @@ export default function Home() {
     }
   };
 
+  const ajouterAuPanier = (p) => {
+    const qte = quantites[p.id] || 3;
+    const existe = panier.find(i => i.id === p.id);
+    if (existe) {
+      setPanier(panier.map(i => i.id === p.id ? { ...i, quantite: i.quantite + qte } : i));
+    } else {
+      setPanier([...panier, { ...p, quantite: qte }]);
+    }
+    setFeedbackAjout({ ...feedbackAjout, [p.id]: true });
+    setTimeout(() => setFeedbackAjout({ ...feedbackAjout, [p.id]: false }), 1500);
+  };
+
   return (
-    <div className="app-container">
+    <div className="container">
       <style>{`
-        .app-container { background: #fff; min-height: 100vh; font-family: -apple-system, sans-serif; color: #1d1d1f; }
-        .nav-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid #d2d2d7; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .roulette { display: flex; overflow-x: auto; gap: 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding: 0 10px; }
-        .roulette::-webkit-scrollbar { display: none; }
-        .tab { flex: 0 0 130px; padding: 10px; border-radius: 15px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.3s; background: #f5f5f7; color: #86868b; }
-        .tab.active { background: #1d1d1f; color: #fff; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding: 20px; max-width: 1000px; margin: 0 auto; }
-        .product-card { background: #fff; border-radius: 25px; display: flex; flex-direction: column; }
-        .img-container { background: #f5f5f7; border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 15px; }
-        .stepper { display: flex; align-items: center; background: #f5f5f7; border-radius: 12px; height: 44px; padding: 0 5px; }
-        .step-btn { border: none; background: none; width: 40px; height: 40px; font-size: 22px; cursor: pointer; color: #1d1d1f; }
-        .step-val { width: 35px; text-align: center; font-weight: 700; font-size: 16px; }
-        .btn-add { flex: 1; height: 44px; border: none; border-radius: 12px; font-weight: 600; background: #0071e3; color: #fff; margin-left: 12px; cursor: pointer; }
+        .container { background: #fff; min-height: 100vh; font-family: -apple-system, sans-serif; color: #1d1d1f; }
+        .nav-header { 
+          position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.8); 
+          backdrop-filter: blur(20px); border-bottom: 1px solid #d2d2d7; 
+          display: flex; align-items: center; padding: 10px 15px;
+        }
+        .roulette-container { 
+          display: flex; overflow-x: auto; gap: 10px; flex: 1; 
+          padding: 0 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        }
+        .roulette-container::-webkit-scrollbar { display: none; }
+        .tab-btn { 
+          flex: 0 0 auto; min-width: 130px; padding: 10px 15px; border-radius: 20px; 
+          border: none; font-size: 14px; font-weight: 600; cursor: pointer; 
+          background: #f5f5f7; color: #86868b; transition: 0.3s;
+        }
+        .tab-btn.active { background: #1d1d1f; color: #fff; }
+        .grid { 
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+          gap: 30px; padding: 40px 20px; max-width: 1100px; margin: 0 auto; 
+        }
+        .card { display: flex; flex-direction: column; }
+        .img-wrap { background: #f5f5f7; border-radius: 25px; padding: 30px; text-align: center; margin-bottom: 15px; }
+        .stepper { display: flex; align-items: center; background: #f5f5f7; border-radius: 14px; padding: 2px; }
+        .step-btn { border: none; background: none; width: 40px; height: 40px; font-size: 22px; cursor: pointer; }
+        .step-val { width: 30px; text-align: center; font-weight: 700; font-size: 16px; }
+        .add-btn { 
+          flex: 1; margin-left: 12px; height: 44px; border: none; border-radius: 14px; 
+          font-weight: 600; background: #0071e3; color: #fff; cursor: pointer; transition: 0.3s;
+        }
+        .add-btn.done { background: #000; }
       `}</style>
 
       <nav className="nav-header">
-        <img src="/images/mugs/logo.jpeg" style={{ height: '24px' }} alt="Logo" />
-        <div className="roulette">
+        <img src="/images/mugs/logo.jpeg" style={{ height: '28px', borderRadius: '5px' }} alt="Logo" />
+        <div className="roulette-container">
           {tabs.map(tab => (
             <button 
               key={tab.id} 
-              className={`tab ${collectionActive === tab.id ? 'active' : ''}`}
+              className={`tab-btn ${collectionActive === tab.id ? 'active' : ''}`}
               onClick={() => setCollectionActive(tab.id)}
             >
               {tab.label}
@@ -65,20 +110,25 @@ export default function Home() {
 
       <main className="grid">
         {COLLECTIONS[collectionActive].map(p => (
-          <div key={p.id} className="product-card">
-            <div className="img-container">
+          <div key={p.id} className="card">
+            <div className="img-wrap">
               <img src={p.image} style={{ height: '200px', objectFit: 'contain' }} alt={p.couleur} />
             </div>
-            <h2 style={{ fontSize: '20px', margin: '0' }}>{p.couleur}</h2>
-            <p style={{ color: '#86868b', fontSize: '14px', margin: '5px 0 20px' }}>Réf: {p.reference}</p>
+            <h3 style={{ margin: '0', fontSize: '19px', fontWeight: '600' }}>{p.couleur}</h3>
+            <p style={{ color: '#86868b', fontSize: '14px', margin: '4px 0 18px' }}>Réf: {p.reference}</p>
             
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div className="stepper">
                 <button className="step-btn" onClick={() => ajusterQte(p.id, -1)} disabled={(quantites[p.id] || 3) <= 3} style={{opacity: (quantites[p.id] || 3) <= 3 ? 0.2 : 1}}>−</button>
-                <div className="step-val">{quantites[p.id] || 3}</div>
+                <span className="step-val">{quantites[p.id] || 3}</span>
                 <button className="step-btn" onClick={() => ajusterQte(p.id, 1)}>+</button>
               </div>
-              <button className="btn-add">Ajouter</button>
+              <button 
+                className={`add-btn ${feedbackAjout[p.id] ? 'done' : ''}`}
+                onClick={() => ajouterAuPanier(p)}
+              >
+                {feedbackAjout[p.id] ? 'Ajouté ✓' : 'Ajouter'}
+              </button>
             </div>
           </div>
         ))}
