@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 export default function CatalogueCommande() {
-  const [produits, setProduits] = useState([
+  const [produits] = useState([
     { id: 1, reference: 'TC 01', image: '/images/mugs/roseblanc.jpg', couleur: 'Rose & Blanc', quantite: 0 },
     { id: 2, reference: 'TC 02', image: '/images/mugs/rougeblanc.jpg', couleur: 'Rouge & Blanc', quantite: 0 },
     { id: 3, reference: 'TC 03', image: '/images/mugs/orangeblanc.jpg', couleur: 'Orange & Blanc', quantite: 0 },
@@ -14,45 +14,36 @@ export default function CatalogueCommande() {
     { id: 10, reference: 'TC 10', image: '/images/mugs/noirvert.JPG', couleur: 'Noir & Vert', quantite: 0 }
   ]);
 
-  const [modeEdition, setModeEdition] = useState(false);
+  const [panier, setPanier] = useState([]);
+  const [panierOuvert, setPanierOuvert] = useState(false);
   const [nomClient, setNomClient] = useState('');
   const [emailClient, setEmailClient] = useState('');
   const [commentaire, setCommentaire] = useState('');
-  const [panierOuvert, setPanierOuvert] = useState(false);
-  const [logo, setLogo] = useState('');
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [montrerMerci, setMontrerMerci] = useState(false);
 
-  const ajouterProduit = () => {
-    const nouveauNumero = produits.length + 1;
-    setProduits([...produits, {
-      id: Date.now(),
-      reference: `TC ${nouveauNumero.toString().padStart(2, '0')}`,
-      image: '',
-      couleur: '',
-      quantite: 0
-    }]);
-  };
-
-  const supprimerProduit = (id) => {
-    if (confirm('Supprimer ce produit ?')) {
-      setProduits(produits.filter(p => p.id !== id));
+  const ajouterAuPanier = (produit) => {
+    const existe = panier.find(p => p.id === produit.id);
+    if (existe) {
+      setPanier(panier.map(p => 
+        p.id === produit.id ? { ...p, quantite: p.quantite + 1 } : p
+      ));
+    } else {
+      setPanier([...panier, { ...produit, quantite: 1 }]);
     }
   };
 
-  const updateProduit = (id, field, value) => {
-    setProduits(produits.map(p => 
-      p.id === id ? { ...p, [field]: value } : p
-    ));
-  };
-
   const updateQuantite = (id, quantite) => {
-    setProduits(produits.map(p =>
-      p.id === id ? { ...p, quantite: Math.max(0, parseInt(quantite) || 0) } : p
-    ));
+    if (quantite <= 0) {
+      setPanier(panier.filter(p => p.id !== id));
+    } else {
+      setPanier(panier.map(p =>
+        p.id === id ? { ...p, quantite: parseInt(quantite) } : p
+      ));
+    }
   };
 
-  const panier = produits.filter(p => p.quantite > 0);
+  const totalArticles = panier.reduce((sum, item) => sum + item.quantite, 0);
 
   const envoyerCommande = async () => {
     if (!nomClient || panier.length === 0) {
@@ -69,7 +60,6 @@ export default function CatalogueCommande() {
         body: JSON.stringify({
           nomClient,
           emailClient,
-          logo,
           commentaire,
           panier
         })
@@ -77,17 +67,16 @@ export default function CatalogueCommande() {
 
       if (response.ok) {
         setMontrerMerci(true);
-        setProduits(produits.map(p => ({ ...p, quantite: 0 })));
-        setNomClient('');
-        setEmailClient('');
-        setLogo('');
-        setCommentaire('');
         setTimeout(() => {
+          setPanier([]);
+          setNomClient('');
+          setEmailClient('');
+          setCommentaire('');
           setMontrerMerci(false);
           setPanierOuvert(false);
         }, 3000);
       } else {
-        alert('Erreur lors de l\'envoi de la commande');
+        alert('Erreur lors de l\'envoi');
       }
     } catch (error) {
       alert('Erreur: ' + error.message);
@@ -97,156 +86,177 @@ export default function CatalogueCommande() {
   };
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ textAlign: 'center', color: '#333' }}>Catalogue Tasses Olda</h1>
-      
-      <button 
-        onClick={() => setModeEdition(!modeEdition)}
-        style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          padding: '10px 20px',
-          backgroundColor: modeEdition ? '#f44336' : '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          zIndex: 1000
-        }}
-      >
-        {modeEdition ? 'Mode Normal' : 'Mode Edition'}
-      </button>
-
-      {modeEdition && (
-        <button 
-          onClick={ajouterProduit}
-          style={{
-            position: 'fixed',
-            top: '70px',
-            right: '20px',
-            padding: '10px 20px',
-            backgroundColor: '#2196F3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            zIndex: 1000
-          }}
-        >
-          + Ajouter Produit
-        </button>
-      )}
-
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
-        gap: '20px',
-        marginTop: '80px'
+    <div style={{ 
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f7'
+    }}>
+      {/* Header */}
+      <nav style={{
+        position: 'sticky',
+        top: 0,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid #d2d2d7',
+        padding: '16px 0',
+        zIndex: 100
       }}>
-        {produits.map(produit => (
-          <div key={produit.id} style={{
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            padding: '15px',
-            backgroundColor: 'white',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '0 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <h1 style={{ 
+            margin: 0, 
+            fontSize: '21px', 
+            fontWeight: '600',
+            color: '#1d1d1f'
           }}>
-            {modeEdition && (
-              <button 
-                onClick={() => supprimerProduit(produit.id)}
-                style={{
-                  float: 'right',
-                  backgroundColor: '#f44336',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  padding: '5px 10px',
-                  cursor: 'pointer'
-                }}
-              >
-                Supprimer
-              </button>
+            Atelier Olda
+          </h1>
+          
+          <button
+            onClick={() => setPanierOuvert(true)}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '16px',
+              color: '#1d1d1f',
+              position: 'relative',
+              padding: '8px 16px'
+            }}
+          >
+            🛒 Panier
+            {totalArticles > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '0',
+                right: '0',
+                backgroundColor: '#0071e3',
+                color: 'white',
+                borderRadius: '10px',
+                padding: '2px 6px',
+                fontSize: '12px',
+                fontWeight: '600'
+              }}>
+                {totalArticles}
+              </span>
             )}
-            
-            <h3>{produit.reference}</h3>
-            
-            {modeEdition ? (
-              <>
-                <input 
-                  type="text"
-                  placeholder="URL de l'image"
-                  value={produit.image}
-                  onChange={(e) => updateProduit(produit.id, 'image', e.target.value)}
-                  style={{ width: '100%', marginBottom: '10px', padding: '5px' }}
-                />
-                <input 
-                  type="text"
-                  placeholder="Couleur"
-                  value={produit.couleur}
-                  onChange={(e) => updateProduit(produit.id, 'couleur', e.target.value)}
-                  style={{ width: '100%', marginBottom: '10px', padding: '5px' }}
-                />
-              </>
-            ) : (
-              <>
-                {produit.image && (
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', marginBottom: '15px' }}>
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <div style={{
+        textAlign: 'center',
+        padding: '60px 24px',
+        backgroundColor: 'white'
+      }}>
+        <h2 style={{
+          fontSize: '48px',
+          fontWeight: '600',
+          margin: '0 0 12px 0',
+          color: '#1d1d1f',
+          letterSpacing: '-0.02em'
+        }}>
+          Tasses Céramique
+        </h2>
+        <p style={{
+          fontSize: '21px',
+          color: '#6e6e73',
+          margin: 0,
+          fontWeight: '400'
+        }}>
+          Collection artisanale. Design élégant.
+        </p>
+      </div>
+
+      {/* Produits */}
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '60px 24px'
+      }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+          gap: '32px'
+        }}>
+          {produits.map(produit => (
+            <div key={produit.id} style={{
+              backgroundColor: 'white',
+              borderRadius: '18px',
+              overflow: 'hidden',
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+              cursor: 'pointer'
+            }}>
+              <div style={{ padding: '24px' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '16px',
+                  marginBottom: '20px'
+                }}>
+                  {produit.image && (
                     <img 
                       src={produit.image} 
                       alt={produit.couleur}
                       style={{ 
                         height: '2.5cm', 
                         width: 'auto', 
-                        objectFit: 'contain', 
-                        borderRadius: '5px',
-                        flexShrink: 0
+                        objectFit: 'contain'
                       }}
                     />
-                    <div style={{ flex: 1 }}>
-                      <p style={{ margin: '0 0 5px 0', fontSize: '16px', fontWeight: 'bold' }}>Tasse Céramique</p>
-                      <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>{produit.couleur}</p>
-                    </div>
+                  )}
+                  <div>
+                    <p style={{ 
+                      margin: '0 0 4px 0', 
+                      fontSize: '17px', 
+                      fontWeight: '600',
+                      color: '#1d1d1f'
+                    }}>
+                      Tasse Céramique
+                    </p>
+                    <p style={{ 
+                      margin: 0, 
+                      fontSize: '14px', 
+                      color: '#6e6e73'
+                    }}>
+                      {produit.couleur}
+                    </p>
                   </div>
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <label>Quantité:</label>
-                  <input 
-                    type="number"
-                    min="0"
-                    value={produit.quantite}
-                    onChange={(e) => updateQuantite(produit.id, e.target.value)}
-                    style={{ width: '60px', padding: '5px' }}
-                  />
                 </div>
-              </>
-            )}
-          </div>
-        ))}
+                
+                <button
+                  onClick={() => ajouterAuPanier(produit)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: '#0071e3',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '980px',
+                    fontSize: '15px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#0077ED'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#0071e3'}
+                >
+                  Ajouter au panier
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {!modeEdition && (
-        <button
-          onClick={() => setPanierOuvert(true)}
-          style={{
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            padding: '15px 30px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '50px',
-            cursor: 'pointer',
-            fontSize: '18px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-            zIndex: 1000
-          }}
-        >
-          Panier ({panier.length})
-        </button>
-      )}
-
+      {/* Modal Panier */}
       {panierOuvert && (
         <div style={{
           position: 'fixed',
@@ -254,108 +264,223 @@ export default function CatalogueCommande() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          backgroundColor: 'rgba(0,0,0,0.4)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          zIndex: 2000
+          zIndex: 1000,
+          padding: '24px'
         }}>
           <div style={{
             backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '10px',
+            borderRadius: '18px',
             maxWidth: '600px',
-            maxHeight: '80vh',
+            width: '100%',
+            maxHeight: '90vh',
             overflow: 'auto',
-            width: '90%'
+            boxShadow: '0 4px 24px rgba(0,0,0,0.15)'
           }}>
             {montrerMerci ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                <h2 style={{ color: '#4CAF50' }}>✓ Commande envoyée avec succès!</h2>
-                <p>Merci pour votre commande</p>
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '80px 40px'
+              }}>
+                <div style={{ 
+                  fontSize: '64px', 
+                  marginBottom: '16px' 
+                }}>
+                  ✓
+                </div>
+                <h2 style={{ 
+                  fontSize: '32px', 
+                  fontWeight: '600', 
+                  color: '#1d1d1f',
+                  margin: '0 0 12px 0'
+                }}>
+                  Commande envoyée
+                </h2>
+                <p style={{ 
+                  fontSize: '17px', 
+                  color: '#6e6e73',
+                  margin: 0
+                }}>
+                  Merci pour votre commande
+                </p>
               </div>
             ) : (
               <>
-                <h2>Votre Commande</h2>
-                
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px' }}>Nom du client *</label>
-                  <input 
-                    type="text"
-                    value={nomClient}
-                    onChange={(e) => setNomClient(e.target.value)}
-                    style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
-                  />
-                  
-                  <label style={{ display: 'block', marginBottom: '5px' }}>Email</label>
-                  <input 
-                    type="email"
-                    value={emailClient}
-                    onChange={(e) => setEmailClient(e.target.value)}
-                    style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
-                  />
-                  
-                  <label style={{ display: 'block', marginBottom: '5px' }}>Logo (facultatif)</label>
-                  <input 
-                    type="text"
-                    value={logo}
-                    onChange={(e) => setLogo(e.target.value)}
-                    placeholder="Description du logo souhaité"
-                    style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
-                  />
-                  
-                  <label style={{ display: 'block', marginBottom: '5px' }}>Commentaire</label>
-                  <textarea 
-                    value={commentaire}
-                    onChange={(e) => setCommentaire(e.target.value)}
-                    style={{ width: '100%', padding: '8px', minHeight: '80px' }}
-                  />
+                <div style={{ 
+                  padding: '32px',
+                  borderBottom: '1px solid #d2d2d7'
+                }}>
+                  <h2 style={{ 
+                    margin: '0 0 8px 0', 
+                    fontSize: '28px', 
+                    fontWeight: '600',
+                    color: '#1d1d1f'
+                  }}>
+                    Votre panier
+                  </h2>
+                  <p style={{ 
+                    margin: 0, 
+                    color: '#6e6e73',
+                    fontSize: '15px'
+                  }}>
+                    {totalArticles} article{totalArticles > 1 ? 's' : ''}
+                  </p>
                 </div>
 
-                <h3>Articles commandés:</h3>
-                {panier.map(item => (
-                  <div key={item.id} style={{ 
-                    padding: '10px', 
-                    borderBottom: '1px solid #eee',
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}>
-                    <span>{item.reference} - {item.couleur}</span>
-                    <span><strong>Quantité: {item.quantite}</strong></span>
-                  </div>
-                ))}
+                <div style={{ padding: '32px' }}>
+                  {panier.length === 0 ? (
+                    <p style={{ 
+                      textAlign: 'center', 
+                      color: '#6e6e73',
+                      fontSize: '17px'
+                    }}>
+                      Votre panier est vide
+                    </p>
+                  ) : (
+                    <>
+                      {panier.map(item => (
+                        <div key={item.id} style={{ 
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '16px 0',
+                          borderBottom: '1px solid #f5f5f7'
+                        }}>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ 
+                              margin: '0 0 4px 0',
+                              fontSize: '17px',
+                              fontWeight: '500',
+                              color: '#1d1d1f'
+                            }}>
+                              {item.couleur}
+                            </p>
+                            <p style={{ 
+                              margin: 0,
+                              fontSize: '14px',
+                              color: '#6e6e73'
+                            }}>
+                              {item.reference}
+                            </p>
+                          </div>
+                          <div style={{ 
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                          }}>
+                            <input 
+                              type="number"
+                              min="0"
+                              value={item.quantite}
+                              onChange={(e) => updateQuantite(item.id, e.target.value)}
+                              style={{ 
+                                width: '60px',
+                                padding: '8px',
+                                border: '1px solid #d2d2d7',
+                                borderRadius: '8px',
+                                fontSize: '15px',
+                                textAlign: 'center'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
 
-                <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-                  <button
-                    onClick={envoyerCommande}
-                    disabled={envoiEnCours}
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      backgroundColor: envoiEnCours ? '#ccc' : '#4CAF50',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: envoiEnCours ? 'not-allowed' : 'pointer',
-                      fontSize: '16px'
-                    }}
-                  >
-                    {envoiEnCours ? 'Envoi en cours...' : 'Envoyer la commande'}
-                  </button>
-                  
-                  <button
-                    onClick={() => setPanierOuvert(false)}
-                    style={{
-                      padding: '12px 24px',
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Fermer
-                  </button>
+                      <div style={{ marginTop: '32px' }}>
+                        <input 
+                          type="text"
+                          placeholder="Nom *"
+                          value={nomClient}
+                          onChange={(e) => setNomClient(e.target.value)}
+                          style={{ 
+                            width: '100%',
+                            padding: '14px',
+                            marginBottom: '12px',
+                            border: '1px solid #d2d2d7',
+                            borderRadius: '12px',
+                            fontSize: '17px',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                        
+                        <input 
+                          type="email"
+                          placeholder="Email (optionnel)"
+                          value={emailClient}
+                          onChange={(e) => setEmailClient(e.target.value)}
+                          style={{ 
+                            width: '100%',
+                            padding: '14px',
+                            marginBottom: '12px',
+                            border: '1px solid #d2d2d7',
+                            borderRadius: '12px',
+                            fontSize: '17px',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                        
+                        <textarea 
+                          placeholder="Commentaire (optionnel)"
+                          value={commentaire}
+                          onChange={(e) => setCommentaire(e.target.value)}
+                          style={{ 
+                            width: '100%',
+                            padding: '14px',
+                            border: '1px solid #d2d2d7',
+                            borderRadius: '12px',
+                            fontSize: '17px',
+                            minHeight: '80px',
+                            boxSizing: 'border-box',
+                            fontFamily: 'inherit',
+                            resize: 'vertical'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ 
+                        marginTop: '24px',
+                        display: 'flex',
+                        gap: '12px'
+                      }}>
+                        <button
+                          onClick={envoyerCommande}
+                          disabled={envoiEnCours}
+                          style={{
+                            flex: 1,
+                            padding: '14px',
+                            backgroundColor: envoiEnCours ? '#d2d2d7' : '#0071e3',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '980px',
+                            fontSize: '17px',
+                            fontWeight: '500',
+                            cursor: envoiEnCours ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          {envoiEnCours ? 'Envoi...' : 'Commander'}
+                        </button>
+                        
+                        <button
+                          onClick={() => setPanierOuvert(false)}
+                          style={{
+                            padding: '14px 24px',
+                            backgroundColor: 'transparent',
+                            color: '#0071e3',
+                            border: 'none',
+                            borderRadius: '980px',
+                            fontSize: '17px',
+                            fontWeight: '500',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Fermer
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </>
             )}
