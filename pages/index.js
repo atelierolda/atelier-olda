@@ -1,624 +1,125 @@
-import React, { useState, useEffect } from 'react';
+import { Resend } from 'resend';
 
-export default function CatalogueCommande() {
-  const [produits, setProduits] = useState([
-    { id: 1, reference: 'TC 01', image: '', couleur: '', quantite: 0 },
-    { id: 2, reference: 'TC 02', image: '', couleur: '', quantite: 0 },
-    { id: 3, reference: 'TC 03', image: '', couleur: '', quantite: 0 },
-    { id: 4, reference: 'TC 04', image: '', couleur: '', quantite: 0 },
-    { id: 5, reference: 'TC 05', image: '', couleur: '', quantite: 0 },
-    { id: 6, reference: 'TC 06', image: '', couleur: '', quantite: 0 },
-    { id: 7, reference: 'TC 07', image: '', couleur: '', quantite: 0 },
-    { id: 8, reference: 'TC 08', image: '', couleur: '', quantite: 0 },
-    { id: 9, reference: 'TC 09', image: '', couleur: '', quantite: 0 },
-    { id: 10, reference: 'TC 10', image: '', couleur: '', quantite: 0 }
-  ]);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-  const [modeEdition, setModeEdition] = useState(false);
-  const [nomClient, setNomClient] = useState('');
-  const [emailClient, setEmailClient] = useState('');
-  const [panierOuvert, setPanierOuvert] = useState(false);
-  const [logo, setLogo] = useState('');
-  const [envoiEnCours, setEnvoiEnCours] = useState(false);
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
 
-  const ajouterProduit = () => {
-    const nouveauNumero = produits.length + 1;
-    setProduits([...produits, {
-      id: Date.now(),
-      reference: `TC ${nouveauNumero.toString().padStart(2, '0')}`,
-      image: '',
-      couleur: '',
-      quantite: 0
-    }]);
-  };
+  const { nomClient, emailClient, panier, totalArticles } = req.body;
 
-  const supprimerProduit = (id) => {
-    if (confirm('Supprimer ce produit ?')) {
-      setProduits(produits.filter(p => p.id !== id));
-    }
-  };
-
-  const updateProduit = (id, field, value) => {
-    setProduits(produits.map(p => 
-      p.id === id ? { ...p, [field]: value } : p
-    ));
-  };
-
-  const updateQuantite = (id, qte) => {
-    updateProduit(id, 'quantite', Math.max(0, parseInt(qte) || 0));
-  };
-
-  const handleImageUpload = (id, e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        updateProduit(id, 'image', event.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleLogoUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setLogo(event.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const totalArticles = produits.reduce((sum, p) => sum + p.quantite, 0);
-
-  const envoyerCommande = async () => {
-    const panier = produits.filter(p => p.quantite > 0);
-    
-    if (panier.length === 0) {
-      alert('Votre panier est vide');
-      return;
-    }
-
-    if (!nomClient || !emailClient) {
-      alert('Veuillez remplir votre nom et email');
-      return;
-    }
-
-    setEnvoiEnCours(true);
-
-    try {
-      let commandeDetails = '';
-      panier.forEach((item, index) => {
-        commandeDetails += `${index + 1}. Tasse Céramique\n`;
-        if (item.couleur) commandeDetails += `   Couleur: ${item.couleur}\n`;
-        commandeDetails += `   Référence: ${item.reference}\n`;
-        commandeDetails += `   Quantité: ${item.quantite}\n\n`;
-      });
-
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nomClient,
-          emailClient,
-          commandeDetails,
-          totalArticles
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        alert('Atelier OLDA vous remercie pour votre commande');
-        setProduits(produits.map(p => ({ ...p, quantite: 0 })));
-        setNomClient('');
-        setEmailClient('');
-        setPanierOuvert(false);
-      } else {
-        alert('Erreur lors de l\'envoi. Veuillez réessayer.');
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-      alert('Erreur lors de l\'envoi. Veuillez réessayer.');
-    } finally {
-      setEnvoiEnCours(false);
-    }
-  };
-
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'white' }}>
-      
-      <div style={{ 
-        backgroundColor: 'rgba(255,255,255,0.8)', 
-        backdropFilter: 'blur(12px)', 
-        borderBottom: '1px solid rgba(229,231,235,0.5)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 20
-      }}>
-        <div style={{ 
-          maxWidth: '1280px', 
-          margin: '0 auto', 
-          padding: '16px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {modeEdition ? (
-              <label style={{ cursor: 'pointer' }}>
-                {logo ? (
-                  <img src={logo} alt="Atelier OLDA" style={{ height: '48px', width: 'auto' }} />
-                ) : (
-                  <div style={{ 
-                    height: '48px', 
-                    width: '48px', 
-                    backgroundColor: '#f3f4f6', 
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <span style={{ fontSize: '14px', color: '#9ca3af' }}>📷</span>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  style={{ display: 'none' }}
-                />
-              </label>
-            ) : (
-              logo ? (
-                <img src={logo} alt="Atelier OLDA" style={{ height: '48px', width: 'auto' }} />
-              ) : (
-                <div style={{ height: '48px', width: '48px', backgroundColor: '#f3f4f6', borderRadius: '4px' }} />
-              )
-            )}
+  try {
+    // Email pour vous (avec images)
+    const htmlVous = `
+      <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+        <div style="background: linear-gradient(135deg, #f5f3ff 0%, #e0e7ff 100%); padding: 40px 20px; text-align: center; border-radius: 16px 16px 0 0;">
+          <h1 style="color: #111827; margin: 0; font-size: 28px; font-weight: 600;">Nouvelle Commande</h1>
+          <p style="color: #6b7280; margin: 10px 0 0 0;">Atelier OLDA</p>
+        </div>
+        
+        <div style="padding: 30px 20px;">
+          <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid #6366f1;">
+            <h2 style="color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 15px 0;">Informations client</h2>
+            <p style="margin: 5px 0; color: #111827;"><strong>Nom :</strong> ${nomClient}</p>
+            <p style="margin: 5px 0; color: #111827;"><strong>Email :</strong> ${emailClient}</p>
+            <p style="margin: 5px 0; color: #6b7280; font-size: 14px;">Date : ${new Date().toLocaleString('fr-FR')}</p>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {!modeEdition && (
-              <button
-                onClick={() => setPanierOuvert(true)}
-                style={{ 
-                  position: 'relative',
-                  padding: '10px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-              >
-                🛒
-                {totalArticles > 0 && (
-                  <span style={{ 
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
-                    backgroundColor: '#111827',
-                    color: 'white',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    borderRadius: '50%',
-                    width: '20px',
-                    height: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    {totalArticles}
-                  </span>
-                )}
-              </button>
-            )}
-            <button
-              onClick={() => setModeEdition(!modeEdition)}
-              style={{ 
-                fontSize: '14px',
-                color: '#6b7280',
-                backgroundColor: 'transparent',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              {modeEdition ? 'Terminer' : 'Modifier'}
-            </button>
+          <h2 style="color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 20px 0;">Produits commandés</h2>
+          
+          ${panier.map((item, index) => `
+            <div style="display: flex; gap: 16px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 12px;">
+              ${item.image ? `
+                <img src="${item.image}" alt="Tasse" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0;" />
+              ` : `
+                <div style="width: 80px; height: 80px; background: #f3f4f6; border-radius: 8px; flex-shrink: 0;"></div>
+              `}
+              <div style="flex: 1;">
+                <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px; font-weight: 600;">Tasse Céramique</h3>
+                ${item.couleur ? `<p style="margin: 4px 0; color: #6b7280; font-size: 14px;">Couleur : ${item.couleur}</p>` : ''}
+                <p style="margin: 4px 0; color: #9ca3af; font-size: 12px;">${item.reference}</p>
+                <p style="margin: 8px 0 0 0; color: #111827; font-weight: 600;">Quantité : ${item.quantite}</p>
+              </div>
+            </div>
+          `).join('')}
+          
+          <div style="background: linear-gradient(135deg, #111827 0%, #374151 100%); color: white; padding: 24px; border-radius: 12px; text-align: center; margin-top: 30px;">
+            <p style="margin: 0; font-size: 14px; color: #9ca3af;">Total de la commande</p>
+            <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: 700;">${totalArticles} article${totalArticles > 1 ? 's' : ''}</p>
           </div>
         </div>
-      </div>
-
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px' }}>
         
-        <div style={{ marginBottom: '24px' }}>
-          {produits.map((produit) => (
-            <div key={produit.id} style={{ 
-              backgroundColor: 'white',
-              padding: '12px 0',
-              borderBottom: '1px solid #f3f4f6'
-            }}>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                
-                <div style={{ 
-                  position: 'relative',
-                  width: '96px',
-                  height: '96px',
-                  flexShrink: 0,
-                  backgroundColor: '#f9fafb',
-                  borderRadius: '12px',
-                  overflow: 'hidden'
-                }}>
-                  {produit.image ? (
-                    <img 
-                      src={produit.image} 
-                      alt="Tasse"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div style={{ 
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#d1d5db',
-                      fontSize: '12px'
-                    }}>
-                      Photo
-                    </div>
-                  )}
-                  
-                  {modeEdition && (
-                    <label style={{ 
-                      position: 'absolute',
-                      inset: 0,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'rgba(0,0,0,0)',
-                      transition: 'background-color 0.2s'
-                    }}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(produit.id, e)}
-                        style={{ display: 'none' }}
-                      />
-                      <div style={{ 
-                        backgroundColor: 'white',
-                        borderRadius: '50%',
-                        padding: '10px'
-                      }}>
-                        ✏️
-                      </div>
-                    </label>
-                  )}
-                </div>
-
-                <div style={{ 
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '16px'
-                }}>
-                  
-                  <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: '14px', fontWeight: '500', color: '#111827', margin: '0 0 4px 0' }}>
-                      Tasse Céramique
-                    </h3>
-                    
-                    {modeEdition ? (
-                      <input
-                        type="text"
-                        value={produit.couleur}
-                        onChange={(e) => updateProduit(produit.id, 'couleur', e.target.value)}
-                        placeholder="Couleur"
-                        style={{ 
-                          width: '100%',
-                          maxWidth: '300px',
-                          padding: '4px 8px',
-                          fontSize: '14px',
-                          color: '#6b7280',
-                          backgroundColor: '#f9fafb',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '8px',
-                          outline: 'none',
-                          marginBottom: '4px'
-                        }}
-                      />
-                    ) : (
-                      produit.couleur && (
-                        <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 4px 0' }}>
-                          {produit.couleur}
-                        </p>
-                      )
-                    )}
-
-                    <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
-                      {produit.reference}
-                    </p>
-                  </div>
-
-                  {!modeEdition && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f9fafb', borderRadius: '12px', padding: '4px' }}>
-                      <button
-                        onClick={() => {
-                          if (produit.quantite > 0) {
-                            updateQuantite(produit.id, produit.quantite - 1);
-                          }
-                        }}
-                        style={{ 
-                          width: '32px',
-                          height: '32px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          color: '#374151'
-                        }}
-                      >
-                        −
-                      </button>
-                      <span style={{ 
-                        width: '40px',
-                        textAlign: 'center',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: '#111827'
-                      }}>
-                        {produit.quantite}
-                      </span>
-                      <button
-                        onClick={() => updateQuantite(produit.id, produit.quantite + 1)}
-                        style={{ 
-                          width: '32px',
-                          height: '32px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          color: '#374151'
-                        }}
-                      >
-                        +
-                      </button>
-                    </div>
-                  )}
-
-                  {modeEdition && (
-                    <button
-                      onClick={() => supprimerProduit(produit.id)}
-                      style={{ 
-                        padding: '8px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#ef4444'
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+        <div style="background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 16px 16px;">
+          <p style="margin: 0; color: #9ca3af; font-size: 12px;">Atelier OLDA - Collection Mugs</p>
         </div>
-
-        {modeEdition && (
-          <button
-            onClick={ajouterProduit}
-            style={{ 
-              padding: '12px 24px',
-              backgroundColor: '#111827',
-              color: 'white',
-              fontSize: '14px',
-              fontWeight: '500',
-              border: 'none',
-              borderRadius: '24px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            + Ajouter une tasse
-          </button>
-        )}
       </div>
+    `;
 
-      {panierOuvert && (
-        <div style={{ 
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.2)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'end',
-          justifyContent: 'center',
-          padding: '0'
-        }}>
-          <div style={{ 
-            backgroundColor: 'white',
-            width: '100%',
-            maxWidth: '448px',
-            borderRadius: '24px 24px 0 0',
-            maxHeight: '85vh',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            
-            <div style={{ 
-              padding: '20px 24px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderBottom: '1px solid #f3f4f6'
-            }}>
-              <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: 0 }}>Panier</h2>
-              <button
-                onClick={() => setPanierOuvert(false)}
-                style={{ 
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  color: '#9ca3af'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
-              {produits.filter(p => p.quantite > 0).length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '64px 0', color: '#9ca3af' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>🛒</div>
-                  <p style={{ fontSize: '14px', fontWeight: '500' }}>Panier vide</p>
-                </div>
-              ) : (
-                <div>
-                  {produits.filter(p => p.quantite > 0).map(produit => (
-                    <div key={produit.id} style={{ 
-                      display: 'flex',
-                      alignItems: 'start',
-                      gap: '16px',
-                      paddingBottom: '16px',
-                      marginBottom: '16px',
-                      borderBottom: '1px solid #f3f4f6'
-                    }}>
-                      
-                      <div style={{ 
-                        width: '64px',
-                        height: '64px',
-                        flexShrink: 0,
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '12px',
-                        overflow: 'hidden'
-                      }}>
-                        {produit.image ? (
-                          <img 
-                            src={produit.image} 
-                            alt="Tasse"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <div style={{ width: '100%', height: '100%', backgroundColor: '#e5e7eb' }} />
-                        )}
-                      </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>
-                          Tasse Céramique
-                        </h3>
-                        {produit.couleur && (
-                          <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0' }}>
-                            {produit.couleur}
-                          </p>
-                        )}
-                        <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
-                          {produit.reference}
-                        </p>
-                      </div>
-
-                      <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                        × {produit.quantite}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {produits.filter(p => p.quantite > 0).length > 0 && (
-              <div style={{ 
-                borderTop: '1px solid #f3f4f6',
-                padding: '24px',
-                backgroundColor: '#f9fafb'
-              }}>
-                <div style={{ 
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '16px'
-                }}>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Total</span>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>
-                    {totalArticles} article{totalArticles > 1 ? 's' : ''}
-                  </span>
-                </div>
-
-                <input
-                  type="text"
-                  value={nomClient}
-                  onChange={(e) => setNomClient(e.target.value)}
-                  placeholder="Nom"
-                  style={{ 
-                    width: '100%',
-                    padding: '12px 16px',
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    marginBottom: '12px',
-                    outline: 'none'
-                  }}
-                />
-                
-                <input
-                  type="email"
-                  value={emailClient}
-                  onChange={(e) => setEmailClient(e.target.value)}
-                  placeholder="Email"
-                  style={{ 
-                    width: '100%',
-                    padding: '12px 16px',
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    marginBottom: '12px',
-                    outline: 'none'
-                  }}
-                />
-
-                <button
-                  onClick={envoyerCommande}
-                  disabled={envoiEnCours}
-                  style={{ 
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: '#111827',
-                    color: 'white',
-                    borderRadius: '24px',
-                    border: 'none',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: envoiEnCours ? 'not-allowed' : 'pointer',
-                    opacity: envoiEnCours ? 0.5 : 1
-                  }}
-                >
-                  {envoiEnCours ? 'Envoi en cours...' : 'Commander'}
-                </button>
-              </div>
-            )}
-          </div>
+    // Email pour le client (confirmation)
+    const htmlClient = `
+      <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+        <div style="background: linear-gradient(135deg, #f5f3ff 0%, #e0e7ff 100%); padding: 40px 20px; text-align: center; border-radius: 16px 16px 0 0;">
+          <h1 style="color: #111827; margin: 0; font-size: 28px; font-weight: 600;">Merci pour votre commande !</h1>
+          <p style="color: #6b7280; margin: 10px 0 0 0;">Atelier OLDA</p>
         </div>
-      )}
-    </div>
-  );
+        
+        <div style="padding: 30px 20px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6;">Bonjour <strong>${nomClient}</strong>,</p>
+          <p style="color: #6b7280; font-size: 15px; line-height: 1.6;">Nous avons bien reçu votre commande. Voici le récapitulatif :</p>
+          
+          <h2 style="color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; margin: 30px 0 20px 0;">Vos produits</h2>
+          
+          ${panier.map((item) => `
+            <div style="display: flex; gap: 16px; padding: 16px; background: #f9fafb; border-radius: 12px; margin-bottom: 12px;">
+              ${item.image ? `
+                <img src="${item.image}" alt="Tasse" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0;" />
+              ` : `
+                <div style="width: 80px; height: 80px; background: #e5e7eb; border-radius: 8px; flex-shrink: 0;"></div>
+              `}
+              <div style="flex: 1;">
+                <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px; font-weight: 600;">Tasse Céramique</h3>
+                ${item.couleur ? `<p style="margin: 4px 0; color: #6b7280; font-size: 14px;">${item.couleur}</p>` : ''}
+                <p style="margin: 4px 0; color: #9ca3af; font-size: 12px;">${item.reference}</p>
+                <p style="margin: 8px 0 0 0; color: #111827; font-weight: 600;">× ${item.quantite}</p>
+              </div>
+            </div>
+          `).join('')}
+          
+          <div style="background: linear-gradient(135deg, #111827 0%, #374151 100%); color: white; padding: 24px; border-radius: 12px; text-align: center; margin: 30px 0;">
+            <p style="margin: 0; font-size: 14px; color: #9ca3af;">Total</p>
+            <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: 700;">${totalArticles} article${totalArticles > 1 ? 's' : ''}</p>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-top: 30px;">Nous vous contacterons très prochainement pour confirmer votre commande.</p>
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">Merci de votre confiance !</p>
+        </div>
+        
+        <div style="background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 16px 16px;">
+          <p style="margin: 0; color: #9ca3af; font-size: 12px;">Atelier OLDA - Collection Mugs</p>
+        </div>
+      </div>
+    `;
+
+    // Envoyer l'email à vous
+    await resend.emails.send({
+      from: 'Atelier OLDA <onboarding@resend.dev>',
+      to: process.env.EMAIL_TO || 'contact@atelier-olda.com',
+      subject: `Nouvelle commande - ${nomClient}`,
+      html: htmlVous,
+    });
+
+    // Envoyer la confirmation au client
+    await resend.emails.send({
+      from: 'Atelier OLDA <onboarding@resend.dev>',
+      to: emailClient,
+      subject: 'Confirmation de votre commande - Atelier OLDA',
+      html: htmlClient,
+    });
+
+    res.status(200).json({ success: true, message: 'Emails envoyés' });
+  } catch (error) {
+    console.error('Erreur envoi email:', error);
+    res.status(500).json({ success: false, message: 'Erreur envoi email' });
+  }
 }
