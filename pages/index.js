@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 export default function CatalogueCommande() {
   const [produits, setProduits] = useState([
@@ -126,99 +126,88 @@ export default function CatalogueCommande() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
       
-      {/* Header */}
+      {/* Header Apple */}
       <div style={{ 
-        backgroundColor: 'rgba(255,255,255,0.8)', 
-        backdropFilter: 'blur(12px)', 
-        borderBottom: '1px solid rgba(229,231,235,0.5)',
+        backgroundColor: 'rgba(255,255,255,0.72)', 
+        backdropFilter: 'saturate(180%) blur(20px)',
+        borderBottom: '0.5px solid rgba(0,0,0,0.07)',
         position: 'sticky',
         top: 0,
         zIndex: 20
       }}>
         <div style={{ 
-          maxWidth: '1280px', 
+          maxWidth: '1200px', 
           margin: '0 auto', 
-          padding: '16px 24px',
+          padding: '12px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Logo */}
+          <div>
             {modeEdition ? (
-              <label style={{ cursor: 'pointer' }}>
+              <label style={{ cursor: 'pointer', display: 'block' }}>
                 {logo ? (
-                  <img src={logo} alt="Atelier OLDA" style={{ height: '48px', width: 'auto' }} />
+                  <img src={logo} alt="Logo" style={{ height: '44px', width: 'auto' }} />
                 ) : (
                   <div style={{ 
-                    height: '48px', 
-                    width: '48px', 
-                    backgroundColor: '#f3f4f6', 
-                    borderRadius: '4px',
+                    height: '44px', 
+                    width: '44px', 
+                    backgroundColor: '#f5f5f7',
+                    borderRadius: '6px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    fontSize: '20px',
+                    color: '#86868b'
                   }}>
-                    <span style={{ fontSize: '14px', color: '#9ca3af' }}>📷</span>
+                    +
                   </div>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  style={{ display: 'none' }}
-                />
+                <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
               </label>
             ) : (
-              logo ? (
-                <img src={logo} alt="Atelier OLDA" style={{ height: '48px', width: 'auto' }} />
-              ) : (
-                <div style={{ height: '48px', width: '48px', backgroundColor: '#f3f4f6', borderRadius: '4px' }} />
-              )
+              logo && <img src={logo} alt="Logo" style={{ height: '44px', width: 'auto' }} />
             )}
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             {!modeEdition && (
               <button
                 onClick={() => setPanierOuvert(true)}
                 style={{ 
                   position: 'relative',
-                  padding: '8px',
-                  backgroundColor: 'transparent',
+                  background: 'none',
                   border: 'none',
-                  borderRadius: '8px',
                   cursor: 'pointer',
-                  transition: 'background-color 0.2s',
+                  padding: '6px',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  alignItems: 'center'
                 }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.6 8M17 13l1.6 8"/>
-                  <circle cx="9" cy="21" r="1"/>
-                  <circle cx="17" cy="21" r="1"/>
+                {/* Icône sac Apple */}
+                <svg width="18" height="22" viewBox="0 0 18 22" fill="none" style={{ display: 'block' }}>
+                  <path d="M4.5 6.5V5.5C4.5 2.73858 6.73858 0.5 9.5 0.5C12.2614 0.5 14.5 2.73858 14.5 5.5V6.5M1.5 8.5L1.9 19.6C1.96066 20.9189 3.03988 21.9519 4.36 21.9519H14.64C15.9601 21.9519 17.0393 20.9189 17.1 19.6L17.5 8.5H1.5Z" stroke="#1d1d1f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 {totalArticles > 0 && (
                   <span style={{ 
                     position: 'absolute',
-                    top: '2px',
-                    right: '2px',
-                    backgroundColor: '#111827',
+                    top: '0',
+                    right: '0',
+                    backgroundColor: '#1d1d1f',
                     color: 'white',
-                    fontSize: '11px',
+                    fontSize: '10px',
                     fontWeight: '600',
                     borderRadius: '10px',
-                    minWidth: '18px',
-                    height: '18px',
+                    minWidth: '16px',
+                    height: '16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '0 5px'
+                    padding: '0 4px'
                   }}>
                     {totalArticles}
                   </span>
@@ -228,107 +217,64 @@ export default function CatalogueCommande() {
             <button
               onClick={() => setModeEdition(!modeEdition)}
               style={{ 
-                fontSize: '14px',
-                color: '#6b7280',
-                backgroundColor: 'transparent',
+                background: 'none',
                 border: 'none',
+                fontSize: '12px',
+                color: '#1d1d1f',
                 cursor: 'pointer',
-                fontWeight: '500'
+                opacity: 0.8,
+                fontWeight: '400'
               }}
             >
-              {modeEdition ? 'Terminer' : 'Modifier'}
+              {modeEdition ? 'Terminé' : 'Modifier'}
             </button>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px' }}>
+      {/* Liste produits */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
         
-        {/* Liste des produits */}
-        <div style={{ marginBottom: '24px' }}>
+        <div style={{ marginBottom: '40px' }}>
           {produits.map((produit) => (
             <div key={produit.id} style={{ 
-              backgroundColor: 'white',
-              padding: '12px 0',
-              borderBottom: '1px solid #f3f4f6'
+              padding: '16px 0',
+              borderBottom: '0.5px solid rgba(0,0,0,0.08)'
             }}>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                 
                 {/* Photo */}
                 <div style={{ 
                   position: 'relative',
-                  width: '96px',
-                  height: '96px',
+                  width: '90px',
+                  height: '90px',
                   flexShrink: 0,
-                  backgroundColor: '#f9fafb',
+                  backgroundColor: '#fbfbfd',
                   borderRadius: '12px',
                   overflow: 'hidden'
                 }}>
                   {produit.image ? (
-                    <img 
-                      src={produit.image} 
-                      alt="Tasse"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
+                    <img src={produit.image} alt="Tasse" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ 
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#d1d5db',
-                      fontSize: '12px'
-                    }}>
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d2d2d7', fontSize: '11px' }}>
                       Photo
                     </div>
                   )}
                   
                   {modeEdition && (
-                    <label style={{ 
-                      position: 'absolute',
-                      inset: 0,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'rgba(0,0,0,0)',
-                      transition: 'background-color 0.2s'
-                    }}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(produit.id, e)}
-                        style={{ display: 'none' }}
-                      />
-                      <div style={{ 
-                        backgroundColor: 'white',
-                        borderRadius: '50%',
-                        padding: '10px',
-                        opacity: 0,
-                        transition: 'opacity 0.2s'
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
-                      onMouseOut={(e) => e.currentTarget.style.opacity = '0'}
-                      >
-                        ✏️
-                      </div>
+                    <label style={{ position: 'absolute', inset: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0)', transition: 'background-color 0.2s' }}>
+                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(produit.id, e)} style={{ display: 'none' }} />
+                      <div style={{ opacity: 0, transition: 'opacity 0.2s' }}>✏️</div>
                     </label>
                   )}
                 </div>
 
-                {/* Informations */}
-                <div style={{ 
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '16px'
-                }}>
+                {/* Infos */}
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: '14px', fontWeight: '500', color: '#111827', margin: '0 0 4px 0' }}>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.01em' }}>
                       Tasse Céramique
                     </h3>
                     
@@ -339,13 +285,12 @@ export default function CatalogueCommande() {
                         onChange={(e) => updateProduit(produit.id, 'couleur', e.target.value)}
                         placeholder="Couleur"
                         style={{ 
-                          width: '100%',
-                          maxWidth: '300px',
-                          padding: '4px 8px',
-                          fontSize: '14px',
-                          color: '#6b7280',
-                          backgroundColor: '#f9fafb',
-                          border: '1px solid #e5e7eb',
+                          width: '200px',
+                          padding: '6px 10px',
+                          fontSize: '13px',
+                          color: '#86868b',
+                          backgroundColor: '#f5f5f7',
+                          border: 'none',
                           borderRadius: '8px',
                           outline: 'none',
                           marginBottom: '4px'
@@ -353,52 +298,40 @@ export default function CatalogueCommande() {
                       />
                     ) : (
                       produit.couleur && (
-                        <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 4px 0' }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#86868b' }}>
                           {produit.couleur}
                         </p>
                       )
                     )}
 
-                    <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#86868b' }}>
                       {produit.reference}
                     </p>
                   </div>
 
-                  {/* Compteur quantité */}
+                  {/* Quantité */}
                   {!modeEdition && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f9fafb', borderRadius: '12px', padding: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <button
-                        onClick={() => {
-                          if (produit.quantite > 0) {
-                            updateQuantite(produit.id, produit.quantite - 1);
-                          }
-                        }}
+                        onClick={() => produit.quantite > 0 && updateQuantite(produit.id, produit.quantite - 1)}
                         style={{ 
                           width: '32px',
                           height: '32px',
+                          backgroundColor: '#f5f5f7',
+                          border: 'none',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          color: '#1d1d1f',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          color: '#374151',
-                          fontSize: '18px',
-                          transition: 'background-color 0.2s'
+                          transition: 'background-color 0.15s'
                         }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                       >
                         −
                       </button>
-                      <span style={{ 
-                        width: '40px',
-                        textAlign: 'center',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: '#111827'
-                      }}>
+                      <span style={{ width: '32px', textAlign: 'center', fontSize: '14px', fontWeight: '400', color: '#1d1d1f' }}>
                         {produit.quantite}
                       </span>
                       <button
@@ -406,42 +339,29 @@ export default function CatalogueCommande() {
                         style={{ 
                           width: '32px',
                           height: '32px',
+                          backgroundColor: '#f5f5f7',
+                          border: 'none',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          color: '#1d1d1f',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          color: '#374151',
-                          fontSize: '18px',
-                          transition: 'background-color 0.2s'
+                          transition: 'background-color 0.15s'
                         }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                       >
                         +
                       </button>
                     </div>
                   )}
 
-                  {/* Bouton supprimer */}
                   {modeEdition && (
                     <button
                       onClick={() => supprimerProduit(produit.id)}
-                      style={{ 
-                        padding: '8px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#ef4444',
-                        borderRadius: '8px',
-                        transition: 'background-color 0.2s'
-                      }}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                      onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                      style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#ff3b30', fontSize: '18px' }}
                     >
-                      🗑️
+                      ×
                     </button>
                   )}
                 </div>
@@ -450,287 +370,97 @@ export default function CatalogueCommande() {
           ))}
         </div>
 
-        {/* Bouton ajouter */}
         {modeEdition && (
           <button
             onClick={ajouterProduit}
             style={{ 
-              padding: '12px 24px',
-              backgroundColor: '#111827',
+              padding: '10px 20px',
+              backgroundColor: '#0071e3',
               color: 'white',
-              fontSize: '14px',
-              fontWeight: '500',
+              fontSize: '12px',
+              fontWeight: '400',
               border: 'none',
-              borderRadius: '24px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'background-color 0.2s'
+              borderRadius: '980px',
+              cursor: 'pointer'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#000000'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#111827'}
           >
-            + Ajouter une tasse
+            Ajouter une tasse
           </button>
         )}
       </div>
 
       {/* Modal Panier */}
       {panierOuvert && (
-        <div style={{ 
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.4)',
-          backdropFilter: 'blur(8px)',
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{ 
-            backgroundColor: 'white',
-            width: '100%',
-            maxWidth: '480px',
-            borderRadius: '16px',
-            maxHeight: '90vh',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-          }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.48)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: 'white', width: '100%', maxWidth: '420px', borderRadius: '18px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
             
             {/* Header */}
-            <div style={{ 
-              padding: '20px 24px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderBottom: '1px solid #f3f4f6'
-            }}>
-              <h2 style={{ fontSize: '17px', fontWeight: '600', color: '#111827', margin: 0, letterSpacing: '-0.01em' }}>
-                Panier
-              </h2>
-              <button
-                onClick={() => setPanierOuvert(false)}
-                style={{ 
-                  width: '28px',
-                  height: '28px',
-                  backgroundColor: '#f3f4f6',
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s',
-                  color: '#6b7280',
-                  fontSize: '18px'
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-              >
-                ×
-              </button>
+            <div style={{ padding: '20px 24px', borderBottom: '0.5px solid rgba(0,0,0,0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: '17px', fontWeight: '600', color: '#1d1d1f' }}>Panier</h2>
+                <button onClick={() => setPanierOuvert(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#86868b', lineHeight: '1' }}>×</button>
+              </div>
             </div>
 
             {/* Contenu */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
               {produits.filter(p => p.quantite > 0).length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 0', color: '#9ca3af' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ margin: '0 auto' }}>
-                      <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.6 8M17 13l1.6 8"/>
-                      <circle cx="9" cy="21" r="1"/>
-                      <circle cx="17" cy="21" r="1"/>
-                    </svg>
-                  </div>
-                  <p style={{ fontSize: '14px', fontWeight: '500', margin: 0 }}>Votre panier est vide</p>
+                <div style={{ textAlign: 'center', padding: '48px 0', color: '#86868b' }}>
+                  <p style={{ margin: 0, fontSize: '14px' }}>Votre panier est vide</p>
                 </div>
               ) : (
                 <>
-                  <div style={{ marginBottom: '24px' }}>
-                    {produits.filter(p => p.quantite > 0).map(produit => (
-                      <div key={produit.id} style={{ 
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        paddingBottom: '16px',
-                        marginBottom: '16px',
-                        borderBottom: '1px solid #f3f4f6'
-                      }}>
-                        
-                        <div style={{ 
-                          width: '56px',
-                          height: '56px',
-                          flexShrink: 0,
-                          backgroundColor: '#f9fafb',
-                          borderRadius: '8px',
-                          overflow: 'hidden'
-                        }}>
-                          {produit.image ? (
-                            <img 
-                              src={produit.image} 
-                              alt="Tasse"
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                          ) : (
-                            <div style={{ width: '100%', height: '100%', backgroundColor: '#e5e7eb' }} />
-                          )}
-                        </div>
-
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <h3 style={{ fontSize: '14px', fontWeight: '500', color: '#111827', margin: '0 0 4px 0' }}>
-                            Tasse Céramique
-                          </h3>
-                          {produit.couleur && (
-                            <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 2px 0' }}>
-                              {produit.couleur}
-                            </p>
-                          )}
-                          <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
-                            {produit.reference}
-                          </p>
-                        </div>
-
-                        <div style={{ 
-                          fontSize: '15px',
-                          fontWeight: '600',
-                          color: '#111827',
-                          backgroundColor: '#f9fafb',
-                          padding: '6px 12px',
-                          borderRadius: '8px'
-                        }}>
-                          × {produit.quantite}
-                        </div>
+                  {produits.filter(p => p.quantite > 0).map(produit => (
+                    <div key={produit.id} style={{ display: 'flex', gap: '12px', marginBottom: '16px', paddingBottom: '16px', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
+                      <div style={{ width: '64px', height: '64px', backgroundColor: '#fbfbfd', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
+                        {produit.image && <img src={produit.image} alt="Tasse" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                       </div>
-                    ))}
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600', color: '#1d1d1f' }}>Tasse Céramique</p>
+                        {produit.couleur && <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#86868b' }}>{produit.couleur}</p>}
+                        <p style={{ margin: 0, fontSize: '12px', color: '#86868b' }}>{produit.reference}</p>
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#1d1d1f' }}>× {produit.quantite}</div>
+                    </div>
+                  ))}
+
+                  <div style={{ padding: '16px', backgroundColor: '#f5f5f7', borderRadius: '12px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#86868b' }}>Total</span>
+                      <span style={{ fontSize: '17px', fontWeight: '600', color: '#1d1d1f' }}>{totalArticles} article{totalArticles > 1 ? 's' : ''}</span>
+                    </div>
                   </div>
 
-                  {/* Total */}
-                  <div style={{ 
-                    padding: '16px',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '12px',
-                    marginBottom: '24px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>Total</span>
-                    <span style={{ fontSize: '20px', fontWeight: '600', color: '#111827' }}>
-                      {totalArticles} article{totalArticles > 1 ? 's' : ''}
-                    </span>
-                  </div>
+                  <input
+                    type="text"
+                    value={nomClient}
+                    onChange={(e) => setNomClient(e.target.value)}
+                    placeholder="Nom"
+                    style={{ width: '100%', padding: '12px 14px', backgroundColor: '#f5f5f7', border: 'none', borderRadius: '10px', fontSize: '14px', marginBottom: '10px', outline: 'none', boxSizing: 'border-box', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                  />
+                  
+                  <input
+                    type="email"
+                    value={emailClient}
+                    onChange={(e) => setEmailClient(e.target.value)}
+                    placeholder="Email"
+                    style={{ width: '100%', padding: '12px 14px', backgroundColor: '#f5f5f7', border: 'none', borderRadius: '10px', fontSize: '14px', marginBottom: '10px', outline: 'none', boxSizing: 'border-box', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                  />
 
-                  {/* Formulaire */}
-                  <div style={{ marginBottom: '16px' }}>
-                    <input
-                      type="text"
-                      value={nomClient}
-                      onChange={(e) => setNomClient(e.target.value)}
-                      placeholder="Nom"
-                      style={{ 
-                        width: '100%',
-                        padding: '14px 16px',
-                        backgroundColor: '#f9fafb',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        fontSize: '15px',
-                        outline: 'none',
-                        transition: 'all 0.2s',
-                        fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-                        boxSizing: 'border-box',
-                        marginBottom: '12px'
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.backgroundColor = '#ffffff';
-                        e.target.style.borderColor = '#3b82f6';
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.backgroundColor = '#f9fafb';
-                        e.target.style.borderColor = '#e5e7eb';
-                      }}
-                    />
-                    
-                    <input
-                      type="email"
-                      value={emailClient}
-                      onChange={(e) => setEmailClient(e.target.value)}
-                      placeholder="Email"
-                      style={{ 
-                        width: '100%',
-                        padding: '14px 16px',
-                        backgroundColor: '#f9fafb',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        fontSize: '15px',
-                        outline: 'none',
-                        transition: 'all 0.2s',
-                        fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-                        boxSizing: 'border-box',
-                        marginBottom: '12px'
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.backgroundColor = '#ffffff';
-                        e.target.style.borderColor = '#3b82f6';
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.backgroundColor = '#f9fafb';
-                        e.target.style.borderColor = '#e5e7eb';
-                      }}
-                    />
-
-                    <textarea
-                      value={commentaire}
-                      onChange={(e) => setCommentaire(e.target.value)}
-                      placeholder="Commentaire (optionnel)"
-                      rows="3"
-                      style={{ 
-                        width: '100%',
-                        padding: '14px 16px',
-                        backgroundColor: '#f9fafb',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        fontSize: '15px',
-                        outline: 'none',
-                        transition: 'all 0.2s',
-                        fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-                        boxSizing: 'border-box',
-                        resize: 'vertical'
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.backgroundColor = '#ffffff';
-                        e.target.style.borderColor = '#3b82f6';
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.backgroundColor = '#f9fafb';
-                        e.target.style.borderColor = '#e5e7eb';
-                      }}
-                    />
-                  </div>
+                  <textarea
+                    value={commentaire}
+                    onChange={(e) => setCommentaire(e.target.value)}
+                    placeholder="Commentaire pour l'équipe (optionnel)"
+                    rows="3"
+                    style={{ width: '100%', padding: '12px 14px', backgroundColor: '#f5f5f7', border: 'none', borderRadius: '10px', fontSize: '14px', marginBottom: '16px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                  />
 
                   <button
                     onClick={envoyerCommande}
                     disabled={envoiEnCours}
-                    style={{ 
-                      width: '100%',
-                      padding: '14px',
-                      backgroundColor: envoiEnCours ? '#9ca3af' : '#111827',
-                      color: 'white',
-                      borderRadius: '12px',
-                      border: 'none',
-                      fontSize: '15px',
-                      fontWeight: '600',
-                      cursor: envoiEnCours ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.2s',
-                      fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
-                    }}
-                    onMouseOver={(e) => { if (!envoiEnCours) e.target.style.backgroundColor = '#000000' }}
-                    onMouseOut={(e) => { if (!envoiEnCours) e.target.style.backgroundColor = '#111827' }}
+                    style={{ width: '100%', padding: '13px', backgroundColor: envoiEnCours ? '#86868b' : '#0071e3', color: 'white', border: 'none', borderRadius: '980px', fontSize: '14px', fontWeight: '400', cursor: envoiEnCours ? 'not-allowed' : 'pointer', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                   >
-                    {envoiEnCours ? 'Envoi en cours...' : 'Commander'}
+                    {envoiEnCours ? 'Envoi...' : 'Commander'}
                   </button>
                 </>
               )}
@@ -741,27 +471,18 @@ export default function CatalogueCommande() {
 
       {/* Message de remerciement */}
       {montrerMerci && (
-        <div style={{ 
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(8px)',
-          zIndex: 60,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{ 
-            backgroundColor: 'white',
-            borderRadius: '20px',
-            padding: '48px 40px',
-            textAlign: 'center',
-            maxWidth: '400px',
-            boxShadow: '0 25px 50px rgba(0,0,0,0.25)'
-          }}>
-            {logo && (
-              <img src={logo} alt="Atelier OLDA" style={{ height: '60px', width: 'auto', marginBottom: '24px' }} />
-            )}
-            <h2 style={{ 
-              margin:​​​​​​​​​​​​​​​​
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.48)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '18px', padding: '48px 32px', textAlign: 'center', maxWidth: '360px', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+            {logo && <img src={logo} alt="Logo" style={{ height: '56px', width: 'auto', marginBottom: '24px' }} />}
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '22px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.02em' }}>
+              Atelier OLDA vous remercie
+            </h2>
+            <p style={{ margin: 0, fontSize: '14px', color: '#86868b', lineHeight: '1.5' }}>
+              Votre commande a bien été envoyée
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
