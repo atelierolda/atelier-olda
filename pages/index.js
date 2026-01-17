@@ -119,9 +119,9 @@ export default function CatalogueCommande() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          {/* Logo OLDA */}
+          {/* Logo OLDA avec le bon chemin */}
           <img 
-            src="/images/logo.jpeg" 
+            src="/images/mugs/logo.jpeg" 
             alt="Olda" 
             style={{ 
               height: '32px', 
