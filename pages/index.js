@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 
 const COLLECTIONS = {
   nouveautes: [{ id: 101, reference: 'NW 01', image: '/images/mugs/nouveaute1.jpg', couleur: 'Édition Aurore' }],
   olda: [
     { id: 1, reference: 'TC 01', image: '/images/mugs/roseblanc.jpg', couleur: 'Rose & Blanc' },
-    { id: 2, reference: 'TC 02', image: '/images/mugs/rougeblanc.jpg', couleur: 'Rouge & Blanc' },
-    { id: 5, reference: 'TC 05', image: '/images/mugs/noirblanc.jpg', couleur: 'Noir & Blanc' }
+    { id: 2, reference: 'TC 02', image: '/images/mugs/rougeblanc.jpg', couleur: 'Rouge & Blanc' }
   ],
   fuck: [{ id: 11, reference: 'TF 01', image: '/images/mugs/Fuckblancnoir.JPG', couleur: 'Blanc & Noir' }],
   discount: [{ id: 201, reference: 'DS 01', image: '/images/mugs/promo.jpg', couleur: 'Offre Spéciale' }]
@@ -14,8 +13,7 @@ const COLLECTIONS = {
 export default function Home() {
   const [collectionActive, setCollectionActive] = useState('olda');
   const [panier, setPanier] = useState([]);
-  const [quantites, setQuantites] = useState({}); 
-  const [feedbackAjout, setFeedbackAjout] = useState({});
+  const [quantites, setQuantites] = useState({});
 
   const tabs = [
     { id: 'nouveautes', label: 'Nouveautés' },
@@ -25,7 +23,6 @@ export default function Home() {
   ];
 
   const ajusterQte = (id, delta) => {
-    // On récupère la valeur actuelle ou 3 par défaut
     const actuelle = quantites[id] || 3;
     const nouvelle = actuelle + delta;
     if (nouvelle >= 3 && nouvelle <= 50) {
@@ -33,86 +30,55 @@ export default function Home() {
     }
   };
 
-  const ajouterAuPanier = (p) => {
-    const qte = quantites[p.id] || 3;
-    const existe = panier.find(i => i.id === p.id);
-    if (existe) {
-      setPanier(panier.map(i => i.id === p.id ? { ...i, quantite: i.quantite + qte } : i));
-    } else {
-      setPanier([...panier, { ...p, quantite: qte }]);
-    }
-    setFeedbackAjout({ ...feedbackAjout, [p.id]: true });
-    setTimeout(() => setFeedbackAjout({ ...feedbackAjout, [p.id]: false }), 1500);
-  };
-
   return (
-    <div className="container">
+    <div className="app-container">
       <style>{`
-        .container { background: #fff; min-height: 100vh; font-family: -apple-system, sans-serif; color: #1d1d1f; }
-        
-        /* MENU ROULETTE HAUT DE GAMME */
-        .nav-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid #d2d2d7; padding: 15px; display: flex; align-items: center; }
-        .roulette-wrapper { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; flex: 1; padding: 0 10px; scrollbar-width: none; }
-        .roulette-wrapper::-webkit-scrollbar { display: none; }
-        
-        .tab-button { 
-          flex: 0 0 140px; scroll-snap-align: center; padding: 10px; border-radius: 20px; border: none; 
-          font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s;
-          background: transparent; color: #86868b;
-        }
-        .tab-button.active { background: #1d1d1f; color: #fff; }
-        
-        /* GRILLE ET PRODUITS */
+        .app-container { background: #fff; min-height: 100vh; font-family: -apple-system, sans-serif; color: #1d1d1f; }
+        .nav-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid #d2d2d7; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .roulette { display: flex; overflow-x: auto; gap: 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding: 0 10px; }
+        .roulette::-webkit-scrollbar { display: none; }
+        .tab { flex: 0 0 130px; padding: 10px; border-radius: 15px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.3s; background: #f5f5f7; color: #86868b; }
+        .tab.active { background: #1d1d1f; color: #fff; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding: 20px; max-width: 1000px; margin: 0 auto; }
-        .card { display: flex; flexDirection: column; }
-        .img-box { background: #f5f5f7; border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 15px; }
-        
-        /* STEPPER */
-        .stepper { display: flex; align-items: center; background: #f5f5f7; border-radius: 12px; height: 40px; }
-        .step-btn { border: none; background: none; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
-        .step-val { width: 30px; text-align: center; font-weight: 700; }
-        
-        .add-btn { flex: 1; height: 40px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-left: 10px; background: #0071e3; color: #fff; }
-        .add-btn.success { background: #000; }
+        .product-card { background: #fff; border-radius: 25px; display: flex; flex-direction: column; }
+        .img-container { background: #f5f5f7; border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 15px; }
+        .stepper { display: flex; align-items: center; background: #f5f5f7; border-radius: 12px; height: 44px; padding: 0 5px; }
+        .step-btn { border: none; background: none; width: 40px; height: 40px; font-size: 22px; cursor: pointer; color: #1d1d1f; }
+        .step-val { width: 35px; text-align: center; font-weight: 700; font-size: 16px; }
+        .btn-add { flex: 1; height: 44px; border: none; border-radius: 12px; font-weight: 600; background: #0071e3; color: #fff; margin-left: 12px; cursor: pointer; }
       `}</style>
 
       <nav className="nav-header">
-        <img src="/images/mugs/logo.jpeg" style={{ height: '25px', borderRadius: '4px' }} alt="Logo" />
-        <div className="roulette-wrapper">
+        <img src="/images/mugs/logo.jpeg" style={{ height: '24px' }} alt="Logo" />
+        <div className="roulette">
           {tabs.map(tab => (
             <button 
               key={tab.id} 
-              className={`tab-button ${collectionActive === tab.id ? 'active' : ''}`}
+              className={`tab ${collectionActive === tab.id ? 'active' : ''}`}
               onClick={() => setCollectionActive(tab.id)}
             >
               {tab.label}
             </button>
           ))}
         </div>
-        <div style={{fontSize: '13px', fontWeight: '600'}}>Panier ({panier.length})</div>
       </nav>
 
       <main className="grid">
         {COLLECTIONS[collectionActive].map(p => (
-          <div key={p.id} className="card">
-            <div className="img-box">
-              <img src={p.image} style={{ height: '180px', objectFit: 'contain' }} />
+          <div key={p.id} className="product-card">
+            <div className="img-container">
+              <img src={p.image} style={{ height: '200px', objectFit: 'contain' }} alt={p.couleur} />
             </div>
-            <h3 style={{ margin: '0', fontSize: '18px' }}>{p.couleur}</h3>
-            <p style={{ color: '#86868b', fontSize: '14px', margin: '5px 0 15px' }}>{p.reference}</p>
+            <h2 style={{ fontSize: '20px', margin: '0' }}>{p.couleur}</h2>
+            <p style={{ color: '#86868b', fontSize: '14px', margin: '5px 0 20px' }}>Réf: {p.reference}</p>
             
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div className="stepper">
-                <button className="step-btn" onClick={() => ajusterQte(p.id, -1)} disabled={(quantites[p.id] || 3) <= 3} style={{opacity: (quantites[p.id] || 3) <= 3 ? 0.3 : 1}}>−</button>
-                <span className="step-val">{quantites[p.id] || 3}</span>
+                <button className="step-btn" onClick={() => ajusterQte(p.id, -1)} disabled={(quantites[p.id] || 3) <= 3} style={{opacity: (quantites[p.id] || 3) <= 3 ? 0.2 : 1}}>−</button>
+                <div className="step-val">{quantites[p.id] || 3}</div>
                 <button className="step-btn" onClick={() => ajusterQte(p.id, 1)}>+</button>
               </div>
-              <button 
-                className={`add-btn ${feedbackAjout[p.id] ? 'success' : ''}`}
-                onClick={() => ajouterAuPanier(p)}
-              >
-                {feedbackAjout[p.id] ? 'Ajouté' : 'Ajouter'}
-              </button>
+              <button className="btn-add">Ajouter</button>
             </div>
           </div>
         ))}
