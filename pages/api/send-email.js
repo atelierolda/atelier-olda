@@ -1,74 +1,55 @@
 import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Méthode non autorisée' });
-  }
+  if (req.method !== 'POST') return res.status(405).send('Non autorisé');
 
-  const { nomClient, emailClient, commentaireGeneral, panier } = req.body;
+  const { nomClient, panier } = req.body;
 
-  // Remplacez ces valeurs par vos variables d'environnement Vercel
   const transporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
   });
 
-  const emailContent = `
-    <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; color: #1d1d1f; border: 1px solid #eee; border-radius: 20px; overflow: hidden;">
-      <div style="background-color: #f5f5f7; padding: 30px; text-align: center; border-bottom: 1px solid #ddd;">
-        <h1 style="margin: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px;">Bon de Préparation</h1>
-        <p style="color: #86868b; margin-top: 10px;">Client : <strong>${nomClient}</strong></p>
+  const emailHtml = `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 700px; margin: 0 auto; color: #1d1d1f; padding: 40px;">
+      
+      <div style="text-align: center; margin-bottom: 60px;">
+        <h1 style="font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #86868b; margin-bottom: 10px;">Bon de Préparation</h1>
+        <h2 style="font-size: 32px; font-weight: 700; margin: 0;">${nomClient}</h2>
       </div>
 
-      <div style="padding: 30px;">
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="border-bottom: 2px solid #1d1d1f;">
-              <th style="text-align: left; padding: 12px;">RÉF</th>
-              <th style="text-align: left; padding: 12px;">PRODUIT</th>
-              <th style="text-align: center; padding: 12px;">QTÉ</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${panier.map(item => `
-              <tr style="border-bottom: 1px solid #f5f5f7;">
-                <td style="padding: 15px 12px; font-weight: bold; font-family: monospace;">${item.reference}</td>
-                <td style="padding: 15px 12px;">
-                  <span style="font-size: 16px;">${item.couleur}</span>
-                  ${item.commentaire ? `<br/><span style="color: #ff3b30; font-size: 12px; font-style: italic;">Note: ${item.commentaire}</span>` : ''}
-                </td>
-                <td style="padding: 15px 12px; text-align: center;">
-                  <span style="background: #f5f5f7; padding: 8px 15px; border-radius: 8px; font-size: 18px; font-weight: bold;">× ${item.quantite}</span>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-
-        <div style="margin-top: 30px; padding: 20px; background-color: #fff9c4; border-radius: 12px; border: 1px solid #f1e05a;">
-          <h3 style="margin: 0 0 10px 0; font-size: 14px;">Commentaire Client :</h3>
-          <p style="margin: 0; font-size: 15px;">${commentaireGeneral || "Aucun commentaire particulier."}</p>
-        </div>
+      <div style="border-top: 1px solid #e5e5e5; padding-top: 30px;">
+        ${panier.map(item => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 30px 0; border-bottom: 1px solid #f5f5f7;">
+            <div style="flex: 1;">
+              <div style="font-size: 12px; color: #0071e3; font-weight: 700; margin-bottom: 5px; text-transform: uppercase;">${item.reference}</div>
+              <div style="font-size: 20px; font-weight: 500;">${item.couleur}</div>
+              ${item.commentaire ? `<div style="margin-top: 10px; padding: 10px; background: #fff9c4; border-radius: 8px; font-size: 14px; color: #000;">Note : ${item.commentaire}</div>` : ''}
+            </div>
+            <div style="margin-left: 40px; text-align: right;">
+              <div style="font-size: 14px; color: #86868b;">Quantité</div>
+              <div style="font-size: 48px; font-weight: 700; line-height: 1;">${item.quantite}</div>
+            </div>
+          </div>
+        `).join('')}
       </div>
 
-      <div style="background-color: #f5f5f7; padding: 20px; text-align: center; font-size: 12px; color: #86868b;">
-        Contact : ${emailClient || 'Non fourni'} | Atelier OLDA - Commande via Site Web
+      <div style="margin-top: 60px; text-align: center; border-top: 1px solid #1d1d1f; padding-top: 30px;">
+        <p style="font-size: 12px; color: #86868b;">Généré le ${new Date().toLocaleDateString('fr-FR')} • Atelier OLDA</p>
       </div>
+
     </div>
   `;
 
   try {
     await transporter.sendMail({
       from: '"Atelier OLDA" <votre-email@gmail.com>',
-      to: 'votre-email-de-reception@gmail.com', // Votre adresse qui reçoit les bons
-      subject: `NOUVELLE COMMANDE - ${nomClient}`,
-      html: emailContent,
+      to: 'votre-email-de-reception@gmail.com',
+      subject: `PREPA : ${nomClient}`,
+      html: emailHtml,
     });
-    res.status(200).json({ message: 'Email envoyé avec succès' });
+    return res.status(200).send('OK');
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors de l'envoi du mail", error });
+    return res.status(500).send(error.message);
   }
 }
