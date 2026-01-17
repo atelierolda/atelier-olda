@@ -42,7 +42,7 @@ export default async function handler(req, res) {
 
     await resend.emails.send({
       from: 'onboarding@resend.dev',
-      to: 'VOTRE_EMAIL_ICI@GMAIL.COM', // <--- METTEZ VOTRE EMAIL ICI
+      to: 'charlie.jallon@gmail.com', // <--- METTEZ VOTRE EMAIL ICI
       subject: `Commande de ${nomClient}`,
       html: htmlVous,
     });
