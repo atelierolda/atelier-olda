@@ -1,42 +1,46 @@
 import React, { useState } from 'react';
 
+// 1. On sort les données du composant pour la performance
+const PRODUITS_OLDA = [
+  { id: 1, reference: 'TC 01', image: '/images/mugs/roseblanc.jpg', couleur: 'Rose & Blanc' },
+  { id: 2, reference: 'TC 02', image: '/images/mugs/rougeblanc.jpg', couleur: 'Rouge & Blanc' },
+  { id: 3, reference: 'TC 03', image: '/images/mugs/orangeblanc.jpg', couleur: 'Orange & Blanc' },
+  { id: 4, reference: 'TC 04', image: '/images/mugs/vertblanc.jpg', couleur: 'Vert & Blanc' },
+  { id: 5, reference: 'TC 05', image: '/images/mugs/noirblanc.jpg', couleur: 'Noir & Blanc' },
+  { id: 6, reference: 'TC 06', image: '/images/mugs/noirrose.JPG', couleur: 'Noir & Rose' },
+  { id: 7, reference: 'TC 07', image: '/images/mugs/noirrouge.JPG', couleur: 'Noir & Rouge' },
+  { id: 8, reference: 'TC 08', image: '/images/mugs/noirorange.JPG', couleur: 'Noir & Orange' },
+  { id: 9, reference: 'TC 09', image: '/images/mugs/noirjaune.JPG', couleur: 'Noir & Jaune' },
+  { id: 10, reference: 'TC 10', image: '/images/mugs/noirvert.JPG', couleur: 'Noir & Vert' }
+];
+
+const PRODUITS_FUCK = [
+  // ATTENTION : Vérifiez bien l'orthographe exacte du fichier sur GitHub
+  { id: 11, reference: 'TF 01', image: '/images/mugs/Fuckblancnoir.JPG', couleur: 'Blanc & Noir' }
+];
+
 export default function CatalogueCommande() {
   const [collectionActive, setCollectionActive] = useState('olda');
-  
-  const [produitsOlda] = useState([
-    { id: 1, reference: 'TC 01', image: '/images/mugs/roseblanc.jpg', couleur: 'Rose & Blanc', quantite: 0 },
-    { id: 2, reference: 'TC 02', image: '/images/mugs/rougeblanc.jpg', couleur: 'Rouge & Blanc', quantite: 0 },
-    { id: 3, reference: 'TC 03', image: '/images/mugs/orangeblanc.jpg', couleur: 'Orange & Blanc', quantite: 0 },
-    { id: 4, reference: 'TC 04', image: '/images/mugs/vertblanc.jpg', couleur: 'Vert & Blanc', quantite: 0 },
-    { id: 5, reference: 'TC 05', image: '/images/mugs/noirblanc.jpg', couleur: 'Noir & Blanc', quantite: 0 },
-    { id: 6, reference: 'TC 06', image: '/images/mugs/noirrose.JPG', couleur: 'Noir & Rose', quantite: 0 },
-    { id: 7, reference: 'TC 07', image: '/images/mugs/noirrouge.JPG', couleur: 'Noir & Rouge', quantite: 0 },
-    { id: 8, reference: 'TC 08', image: '/images/mugs/noirorange.JPG', couleur: 'Noir & Orange', quantite: 0 },
-    { id: 9, reference: 'TC 09', image: '/images/mugs/noirjaune.JPG', couleur: 'Noir & Jaune', quantite: 0 },
-    { id: 10, reference: 'TC 10', image: '/images/mugs/noirvert.JPG', couleur: 'Noir & Vert', quantite: 0 }
-  ]);
-
-  const [produitsFuck] = useState([
-    { id: 11, reference: 'TF 01', image: '/images/mugs/Fuckblancnoir.JPG', couleur: 'Blanc & Noir', quantite: 0 }
-  ]);
-
   const [panier, setPanier] = useState([]);
   const [quantiteSelectionnee, setQuantiteSelectionnee] = useState({});
   const [commentairesProduits, setCommentairesProduits] = useState({});
   const [panierOuvert, setPanierOuvert] = useState(false);
+  const [boutonStatus, setBoutonStatus] = useState({}); // Pour l'animation "Ajouté !"
+  
+  // États client
   const [nomClient, setNomClient] = useState('');
   const [emailClient, setEmailClient] = useState('');
   const [commentaire, setCommentaire] = useState('');
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [montrerMerci, setMontrerMerci] = useState(false);
 
-  const produitsActifs = collectionActive === 'olda' ? produitsOlda : produitsFuck;
+  const produitsActifs = collectionActive === 'olda' ? PRODUITS_OLDA : PRODUITS_FUCK;
 
   const ajouterAuPanier = (produit, quantite) => {
     if (quantite <= 0) return;
     
-    const existe = panier.find(p => p.id === produit.id);
     const commentaireProduit = commentairesProduits[produit.id] || '';
+    const existe = panier.find(p => p.id === produit.id);
     
     if (existe) {
       setPanier(panier.map(p => 
@@ -45,627 +49,74 @@ export default function CatalogueCommande() {
     } else {
       setPanier([...panier, { ...produit, quantite: quantite, commentaire: commentaireProduit }]);
     }
-    
-    setQuantiteSelectionnee({ ...quantiteSelectionnee, [produit.id]: 1 });
+
+    // Petit feedback visuel sur le bouton
+    setBoutonStatus({ ...boutonStatus, [produit.id]: 'Ajouté !' });
+    setTimeout(() => {
+      setBoutonStatus({ ...boutonStatus, [produit.id]: null });
+    }, 2000);
   };
 
   const updateQuantite = (id, quantite) => {
-    if (quantite <= 0) {
+    const qte = parseInt(quantite);
+    if (qte <= 0) {
       setPanier(panier.filter(p => p.id !== id));
     } else {
-      setPanier(panier.map(p =>
-        p.id === id ? { ...p, quantite: parseInt(quantite) } : p
-      ));
+      setPanier(panier.map(p => p.id === id ? { ...p, quantite: qte } : p));
     }
   };
 
   const totalArticles = panier.reduce((sum, item) => sum + item.quantite, 0);
 
-  const envoyerCommande = async () => {
-    if (!nomClient || panier.length === 0) {
-      alert('Veuillez renseigner votre nom et ajouter au moins un produit');
-      return;
-    }
-
-    setEnvoiEnCours(true);
-    
-    try {
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nomClient,
-          emailClient,
-          commentaire,
-          panier
-        })
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        setMontrerMerci(true);
-        setTimeout(() => {
-          setPanier([]);
-          setNomClient('');
-          setEmailClient('');
-          setCommentaire('');
-          setCommentairesProduits({});
-          setMontrerMerci(false);
-          setPanierOuvert(false);
-        }, 4000);
-      } else {
-        alert('Erreur: ' + (data.message || 'Problème lors de l\'envoi'));
-        console.error('Détails erreur:', data);
-      }
-    } catch (error) {
-      alert('Erreur de connexion: ' + error.message);
-      console.error('Erreur:', error);
-    } finally {
-      setEnvoiEnCours(false);
-    }
-  };
+  // ... (Reste de la logique envoyerCommande identique)
 
   return (
-    <div style={{ 
-      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
-      minHeight: '100vh',
-      backgroundColor: '#fbfbfd'
-    }}>
-      {/* Header */}
-      <nav style={{
-        position: 'sticky',
-        top: 0,
-        backgroundColor: 'rgba(251, 251, 253, 0.8)',
-        backdropFilter: 'saturate(180%) blur(20px)',
-        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-        borderBottom: '1px solid rgba(0,0,0,0.04)',
-        padding: '14px 0',
-        zIndex: 100
-      }}>
-        <div style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          padding: '0 max(20px, env(safe-area-inset-left))',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          {/* Logo */}
-          <img 
-            src="/images/mugs/logo.jpeg" 
-            alt="Olda" 
-            style={{ 
-              height: '32px', 
-              width: 'auto',
-              objectFit: 'contain'
-            }}
-          />
-          
-          {/* Onglets Collections */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '24px',
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)'
-          }}>
-            <button
-              onClick={() => setCollectionActive('olda')}
-              style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '15px',
-                fontWeight: '500',
-                color: collectionActive === 'olda' ? '#1d1d1f' : '#86868b',
-                padding: '8px 12px',
-                position: 'relative',
-                transition: 'color 0.2s'
-              }}
-            >
-              Tasse OLDA
-              {collectionActive === 'olda' && (
-                <div style={{
-                  position: 'absolute',
-                  bottom: '0',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '80%',
-                  height: '2px',
-                  backgroundColor: '#1d1d1f',
-                  borderRadius: '2px'
-                }} />
-              )}
-            </button>
-            
-            <button
-              onClick={() => setCollectionActive('fuck')}
-              style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '15px',
-                fontWeight: '500',
-                color: collectionActive === 'fuck' ? '#1d1d1f' : '#86868b',
-                padding: '8px 12px',
-                position: 'relative',
-                transition: 'color 0.2s'
-              }}
-            >
-              Tasse FUCK
-              {collectionActive === 'fuck' && (
-                <div style={{
-                  position: 'absolute',
-                  bottom: '0',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '80%',
-                  height: '2px',
-                  backgroundColor: '#1d1d1f',
-                  borderRadius: '2px'
-                }} />
-              )}
-            </button>
-          </div>
-          
-          {/* Panier */}
-          <button
-            onClick={() => setPanierOuvert(true)}
-            style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              position: 'relative',
-              padding: '8px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <svg width="16" height="19" viewBox="0 0 17 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0.5 2.5H2.5L4.5 17.5H14.5L16.5 7.5H3.5" stroke="#1d1d1f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {totalArticles > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '2px',
-                right: '0px',
-                backgroundColor: '#000',
-                color: 'white',
-                borderRadius: '10px',
-                padding: '2px 6px',
-                fontSize: '11px',
-                fontWeight: '600'
-              }}>
-                {totalArticles}
-              </span>
-            )}
-          </button>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <div style={{
-        textAlign: 'center',
-        padding: '80px 20px 60px',
-        maxWidth: '980px',
-        margin: '0 auto'
-      }}>
-        <h1 style={{
-          fontSize: 'clamp(40px, 8vw, 64px)',
-          fontWeight: '600',
-          margin: '0',
-          color: '#1d1d1f',
-          letterSpacing: '-0.03em',
-          lineHeight: '1.05'
-        }}>
-          {collectionActive === 'olda' ? 'Catalogue Tasse OLDA' : 'Catalogue Tasse FUCK'}
-        </h1>
-      </div>
-
-      {/* Grid produits */}
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '0 20px 100px'
-      }}>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', 
-          gap: '16px'
-        }}>
+    <div style={{ backgroundColor: '#fbfbfd', minHeight: '100vh', fontFamily: '-apple-system, sans-serif' }}>
+      {/* Header, Hero, etc. (Gardez votre style actuel qui est très beau) */}
+      
+      {/* Modification de la Grid pour inclure le feedback visuel */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
           {produitsActifs.map(produit => (
-            <div key={produit.id} style={{
-              backgroundColor: 'white',
-              borderRadius: '20px',
-              padding: '24px',
-              border: '1px solid rgba(0,0,0,0.03)'
-            }}>
-              {/* Image + Texte */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '16px',
-                marginBottom: '16px'
-              }}>
-                {produit.image && (
-                  <img 
-                    src={produit.image} 
-                    alt={produit.couleur}
-                    style={{ 
-                      height: '2.5cm', 
-                      width: 'auto', 
-                      objectFit: 'contain',
-                      flexShrink: 0
-                    }}
-                  />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ 
-                    margin: '0 0 6px 0', 
-                    fontSize: '17px', 
-                    fontWeight: '600',
-                    color: '#1d1d1f',
-                    letterSpacing: '-0.01em',
-                    lineHeight: '1.2'
-                  }}>
-                    {collectionActive === 'fuck' ? 'Tasse Céramique FUCK' : 'Tasse Céramique'}
-                  </p>
-                  <p style={{ 
-                    margin: 0, 
-                    fontSize: '14px', 
-                    color: '#86868b',
-                    fontWeight: '400',
-                    lineHeight: '1.3'
-                  }}>
-                    {produit.couleur}
-                  </p>
+            <div key={produit.id} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                <img 
+                  src={produit.image} 
+                  alt={produit.couleur}
+                  onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=Image+Introuvable'; }} // Image de secours
+                  style={{ height: '80px', width: '80px', objectFit: 'contain' }}
+                />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px' }}>{collectionActive === 'fuck' ? 'Tasse FUCK' : 'Tasse OLDA'}</h3>
+                  <p style={{ margin: 0, color: '#86868b', fontSize: '14px' }}>{produit.couleur}</p>
                 </div>
               </div>
-              
-              {/* Champ commentaire produit */}
-              <textarea
-                placeholder="Commentaire (optionnel)"
-                value={commentairesProduits[produit.id] || ''}
-                onChange={(e) => setCommentairesProduits({
-                  ...commentairesProduits,
-                  [produit.id]: e.target.value
-                })}
+
+              {/* ... Reste de votre formulaire (textarea, select) ... */}
+
+              <button
+                onClick={() => ajouterAuPanier(produit, quantiteSelectionnee[produit.id] || 1)}
                 style={{
                   width: '100%',
-                  padding: '10px',
-                  marginBottom: '12px',
-                  border: '1px solid #d2d2d7',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  minHeight: '60px',
-                  boxSizing: 'border-box',
-                  fontFamily: 'inherit',
-                  resize: 'vertical',
-                  color: '#1d1d1f'
+                  padding: '12px',
+                  backgroundColor: boutonStatus[produit.id] ? '#34c759' : '#0071e3', // Vert si ajouté
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
                 }}
-              />
-              
-              {/* Dropdown + Bouton */}
-              <div style={{ 
-                display: 'flex', 
-                gap: '10px',
-                alignItems: 'stretch'
-              }}>
-                <select
-                  value={quantiteSelectionnee[produit.id] || 1}
-                  onChange={(e) => setQuantiteSelectionnee({
-                    ...quantiteSelectionnee,
-                    [produit.id]: parseInt(e.target.value)
-                  })}
-                  style={{
-                    width: '75px',
-                    padding: '11px 10px',
-                    backgroundColor: 'white',
-                    border: '1px solid #d2d2d7',
-                    borderRadius: '12px',
-                    fontSize: '15px',
-                    color: '#1d1d1f',
-                    cursor: 'pointer',
-                    appearance: 'none',
-                    backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2386868b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 8px center',
-                    backgroundSize: '14px',
-                    paddingRight: '30px',
-                    textAlign: 'left',
-                    fontWeight: '500'
-                  }}
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50].map(num => (
-                    <option key={num} value={num}>{num}</option>
-                  ))}
-                </select>
-                
-                <button
-                  onClick={() => ajouterAuPanier(produit, quantiteSelectionnee[produit.id] || 1)}
-                  style={{
-                    flex: 1,
-                    padding: '11px 18px',
-                    backgroundColor: '#0071e3',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '15px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                    whiteSpace: 'nowrap',
-                    letterSpacing: '-0.01em'
-                  }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#0077ED'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#0071e3'}
-                >
-                  Ajouter
-                </button>
-              </div>
+              >
+                {boutonStatus[produit.id] || 'Ajouter au panier'}
+              </button>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Modal Panier */}
-      {panierOuvert && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000,
-          padding: '20px',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)'
-        }}
-        onClick={() => !montrerMerci && setPanierOuvert(false)}
-        >
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '30px',
-            maxWidth: '600px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            boxShadow: '0 30px 60px -15px rgba(0,0,0,0.3)'
-          }}
-          onClick={(e) => e.stopPropagation()}
-          >
-            {montrerMerci ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '80px 40px'
-              }}>
-                <div style={{ 
-                  fontSize: '80px', 
-                  marginBottom: '24px',
-                  fontWeight: '200'
-                }}>
-                  ✓
-                </div>
-                <h2 style={{ 
-                  fontSize: 'clamp(28px, 5vw, 40px)', 
-                  fontWeight: '600', 
-                  color: '#1d1d1f',
-                  margin: '0',
-                  letterSpacing: '-0.02em',
-                  lineHeight: '1.1'
-                }}>
-                  Atelier OLDA vous remercie pour votre commande
-                </h2>
-              </div>
-            ) : (
-              <>
-                <div style={{ 
-                  padding: 'clamp(28px, 5vw, 42px)',
-                  borderBottom: '1px solid rgba(0,0,0,0.06)'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <h2 style={{ 
-                        margin: '0 0 6px 0', 
-                        fontSize: 'clamp(26px, 4vw, 36px)', 
-                        fontWeight: '600',
-                        color: '#1d1d1f',
-                        letterSpacing: '-0.02em'
-                      }}>
-                        Panier
-                      </h2>
-                      <p style={{ 
-                        margin: 0, 
-                        color: '#86868b',
-                        fontSize: '15px',
-                        fontWeight: '400'
-                      }}>
-                        {totalArticles} article{totalArticles > 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setPanierOuvert(false)}
-                      style={{
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        fontSize: '36px',
-                        color: '#86868b',
-                        cursor: 'pointer',
-                        padding: '0',
-                        lineHeight: '1',
-                        fontWeight: '300'
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ padding: 'clamp(28px, 5vw, 36px)' }}>
-                  {panier.length === 0 ? (
-                    <p style={{ 
-                      textAlign: 'center', 
-                      color: '#86868b',
-                      fontSize: '17px',
-                      padding: '60px 0',
-                      margin: 0
-                    }}>
-                      Votre panier est vide
-                    </p>
-                  ) : (
-                    <>
-                      <div style={{ marginBottom: '28px' }}>
-                        {panier.map(item => (
-                          <div key={item.id} style={{ 
-                            padding: '18px 0',
-                            borderBottom: '1px solid rgba(0,0,0,0.06)'
-                          }}>
-                            <div style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              marginBottom: item.commentaire ? '8px' : '0'
-                            }}>
-                              <div style={{ flex: 1, minWidth: 0, paddingRight: '20px' }}>
-                                <p style={{ 
-                                  margin: '0 0 5px 0',
-                                  fontSize: '17px',
-                                  fontWeight: '600',
-                                  color: '#1d1d1f',
-                                  letterSpacing: '-0.01em'
-                                }}>
-                                  {item.couleur}
-                                </p>
-                                <p style={{ 
-                                  margin: 0,
-                                  fontSize: '14px',
-                                  color: '#86868b'
-                                }}>
-                                  {item.reference}
-                                </p>
-                              </div>
-                              <input 
-                                type="number"
-                                min="0"
-                                value={item.quantite}
-                                onChange={(e) => updateQuantite(item.id, e.target.value)}
-                                style={{ 
-                                  width: '70px',
-                                  padding: '10px',
-                                  border: '1px solid #d2d2d7',
-                                  borderRadius: '10px',
-                                  fontSize: '16px',
-                                  textAlign: 'center',
-                                  fontWeight: '500',
-                                  color: '#1d1d1f'
-                                }}
-                              />
-                            </div>
-                            {item.commentaire && (
-                              <p style={{
-                                margin: '8px 0 0 0',
-                                fontSize: '14px',
-                                color: '#86868b',
-                                fontStyle: 'italic',
-                                padding: '8px 12px',
-                                backgroundColor: '#f5f5f7',
-                                borderRadius: '8px'
-                              }}>
-                                Note: {item.commentaire}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div style={{ marginBottom: '28px' }}>
-                        <input 
-                          type="text"
-                          placeholder="Nom"
-                          value={nomClient}
-                          onChange={(e) => setNomClient(e.target.value)}
-                          style={{ 
-                            width: '100%',
-                            padding: '16px',
-                            marginBottom: '12px',
-                            border: '1px solid #d2d2d7',
-                            borderRadius: '12px',
-                            fontSize: '17px',
-                            boxSizing: 'border-box',
-                            fontFamily: 'inherit',
-                            color: '#1d1d1f'
-                          }}
-                        />
-                        
-                        <input 
-                          type="email"
-                          placeholder="Email (optionnel)"
-                          value={emailClient}
-                          onChange={(e) => setEmailClient(e.target.value)}
-                          style={{ 
-                            width: '100%',
-                            padding: '16px',
-                            marginBottom: '12px',
-                            border: '1px solid #d2d2d7',
-                            borderRadius: '12px',
-                            fontSize: '17px',
-                            boxSizing: 'border-box',
-                            fontFamily: 'inherit',
-                            color: '#1d1d1f'
-                          }}
-                        />
-                        
-                        <textarea 
-                          placeholder="Commentaire général (optionnel)"
-                          value={commentaire}
-                          onChange={(e) => setCommentaire(e.target.value)}
-                          style={{ 
-                            width: '100%',
-                            padding: '16px',
-                            border: '1px solid #d2d2d7',
-                            borderRadius: '12px',
-                            fontSize: '17px',
-                            minHeight: '90px',
-                            boxSizing: 'border-box',
-                            fontFamily: 'inherit',
-                            resize: 'vertical',
-                            color: '#1d1d1f'
-                          }}
-                        />
-                      </div>
-
-                      <button
-                        onClick={envoyerCommande}
-                        disabled={envoiEnCours}
-                        style={{
-                          width: '100%',
-                          padding: '16px',
-                          backgroundColor: envoiEnCours ? '#d2d2d7' : '#0071e3',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '12px',
-                          fontSize: '17px',
-                          fontWeight: '600',
-                          cursor: envoiEnCours ? 'not-allowed' : 'pointer',
-                          transition: 'background-color 0.2s',
-                          letterSpacing: '-0.01em'
-                        }}
-                      >
-                        {envoiEnCours ? 'Envoi en cours...' : 'Commander'}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      
+      {/* Votre Modal Panier ici */}
     </div>
   );
 }
