@@ -15,6 +15,7 @@ export default function CatalogueCommande() {
   ]);
 
   const [panier, setPanier] = useState([]);
+  const [quantiteSelectionnee, setQuantiteSelectionnee] = useState({});
   const [panierOuvert, setPanierOuvert] = useState(false);
   const [nomClient, setNomClient] = useState('');
   const [emailClient, setEmailClient] = useState('');
@@ -22,15 +23,19 @@ export default function CatalogueCommande() {
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [montrerMerci, setMontrerMerci] = useState(false);
 
-  const ajouterAuPanier = (produit) => {
+  const ajouterAuPanier = (produit, quantite) => {
+    if (quantite <= 0) return;
+    
     const existe = panier.find(p => p.id === produit.id);
     if (existe) {
       setPanier(panier.map(p => 
-        p.id === produit.id ? { ...p, quantite: p.quantite + 1 } : p
+        p.id === produit.id ? { ...p, quantite: p.quantite + quantite } : p
       ));
     } else {
-      setPanier([...panier, { ...produit, quantite: 1 }]);
+      setPanier([...panier, { ...produit, quantite: quantite }]);
     }
+    
+    setQuantiteSelectionnee({ ...quantiteSelectionnee, [produit.id]: 1 });
   };
 
   const updateQuantite = (id, quantite) => {
@@ -87,60 +92,76 @@ export default function CatalogueCommande() {
 
   return (
     <div style={{ 
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
       minHeight: '100vh',
-      backgroundColor: '#f5f5f7'
+      backgroundColor: '#fbfbfd'
     }}>
-      {/* Header */}
+      {/* Header minimaliste */}
       <nav style={{
         position: 'sticky',
         top: 0,
-        backgroundColor: 'rgba(255,255,255,0.8)',
-        backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid #d2d2d7',
-        padding: '16px 0',
+        backgroundColor: 'rgba(251, 251, 253, 0.8)',
+        backdropFilter: 'saturate(180%) blur(20px)',
+        borderBottom: '1px solid rgba(0,0,0,0.05)',
+        padding: '12px 0',
         zIndex: 100
       }}>
         <div style={{
-          maxWidth: '1200px',
+          maxWidth: '1400px',
           margin: '0 auto',
-          padding: '0 24px',
+          padding: '0 48px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <h1 style={{ 
-            margin: 0, 
-            fontSize: '21px', 
-            fontWeight: '600',
-            color: '#1d1d1f'
-          }}>
-            Atelier Olda
-          </h1>
+          {/* Logo Olda à gauche */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img 
+              src="/images/logo.png" 
+              alt="Olda" 
+              style={{ height: '32px', width: 'auto' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
+            />
+            <span style={{ 
+              display: 'none',
+              fontSize: '20px', 
+              fontWeight: '600',
+              color: '#1d1d1f',
+              letterSpacing: '-0.01em'
+            }}>
+              OLDA
+            </span>
+          </div>
           
+          {/* Icône panier Apple */}
           <button
             onClick={() => setPanierOuvert(true)}
             style={{
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              fontSize: '16px',
-              color: '#1d1d1f',
               position: 'relative',
-              padding: '8px 16px'
+              padding: '8px',
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            🛒 Panier
+            <svg width="17" height="20" viewBox="0 0 17 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0.5 2.5H2.5L4.5 17.5H14.5L16.5 7.5H3.5" stroke="#1d1d1f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
             {totalArticles > 0 && (
               <span style={{
                 position: 'absolute',
-                top: '0',
-                right: '0',
-                backgroundColor: '#0071e3',
+                top: '2px',
+                right: '0px',
+                backgroundColor: '#000',
                 color: 'white',
                 borderRadius: '10px',
                 padding: '2px 6px',
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: '600'
               }}>
                 {totalArticles}
@@ -150,105 +171,135 @@ export default function CatalogueCommande() {
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* Hero ultra minimaliste */}
       <div style={{
         textAlign: 'center',
-        padding: '60px 24px',
-        backgroundColor: 'white'
+        padding: '80px 24px 60px',
+        maxWidth: '980px',
+        margin: '0 auto'
       }}>
-        <h2 style={{
-          fontSize: '48px',
+        <h1 style={{
+          fontSize: '56px',
           fontWeight: '600',
-          margin: '0 0 12px 0',
+          margin: '0',
           color: '#1d1d1f',
-          letterSpacing: '-0.02em'
+          letterSpacing: '-0.02em',
+          lineHeight: '1.07'
         }}>
-          Tasses Céramique
-        </h2>
-        <p style={{
-          fontSize: '21px',
-          color: '#6e6e73',
-          margin: 0,
-          fontWeight: '400'
-        }}>
-          Collection artisanale. Design élégant.
-        </p>
+          Catalogue Tasse OLDA
+        </h1>
       </div>
 
-      {/* Produits */}
+      {/* Grid produits ultra clean */}
       <div style={{
-        maxWidth: '1200px',
+        maxWidth: '1400px',
         margin: '0 auto',
-        padding: '60px 24px'
+        padding: '0 48px 120px'
       }}>
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-          gap: '32px'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+          gap: '12px'
         }}>
           {produits.map(produit => (
             <div key={produit.id} style={{
               backgroundColor: 'white',
               borderRadius: '18px',
-              overflow: 'hidden',
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              cursor: 'pointer'
+              padding: '32px 24px',
+              border: '1px solid rgba(0,0,0,0.04)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}>
-              <div style={{ padding: '24px' }}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '16px',
-                  marginBottom: '20px'
-                }}>
-                  {produit.image && (
-                    <img 
-                      src={produit.image} 
-                      alt={produit.couleur}
-                      style={{ 
-                        height: '2.5cm', 
-                        width: 'auto', 
-                        objectFit: 'contain'
-                      }}
-                    />
-                  )}
-                  <div>
-                    <p style={{ 
-                      margin: '0 0 4px 0', 
-                      fontSize: '17px', 
-                      fontWeight: '600',
-                      color: '#1d1d1f'
-                    }}>
-                      Tasse Céramique
-                    </p>
-                    <p style={{ 
-                      margin: 0, 
-                      fontSize: '14px', 
-                      color: '#6e6e73'
-                    }}>
-                      {produit.couleur}
-                    </p>
-                  </div>
+              {/* Image et texte */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '20px',
+                marginBottom: '24px'
+              }}>
+                {produit.image && (
+                  <img 
+                    src={produit.image} 
+                    alt={produit.couleur}
+                    style={{ 
+                      height: '2.5cm', 
+                      width: 'auto', 
+                      objectFit: 'contain'
+                    }}
+                  />
+                )}
+                <div style={{ flex: 1 }}>
+                  <p style={{ 
+                    margin: '0 0 4px 0', 
+                    fontSize: '19px', 
+                    fontWeight: '600',
+                    color: '#1d1d1f',
+                    letterSpacing: '-0.01em'
+                  }}>
+                    Tasse Céramique
+                  </p>
+                  <p style={{ 
+                    margin: 0, 
+                    fontSize: '14px', 
+                    color: '#86868b',
+                    fontWeight: '400'
+                  }}>
+                    {produit.couleur}
+                  </p>
                 </div>
+              </div>
+              
+              {/* Dropdown quantité façon Apple */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px',
+                alignItems: 'center'
+              }}>
+                <select
+                  value={quantiteSelectionnee[produit.id] || 1}
+                  onChange={(e) => setQuantiteSelectionnee({
+                    ...quantiteSelectionnee,
+                    [produit.id]: parseInt(e.target.value)
+                  })}
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    backgroundColor: 'white',
+                    border: '1px solid #d2d2d7',
+                    borderRadius: '12px',
+                    fontSize: '17px',
+                    color: '#1d1d1f',
+                    cursor: 'pointer',
+                    appearance: 'none',
+                    backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 12px center',
+                    backgroundSize: '16px',
+                    paddingRight: '40px'
+                  }}
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50].map(num => (
+                    <option key={num} value={num}>{num}</option>
+                  ))}
+                </select>
                 
                 <button
-                  onClick={() => ajouterAuPanier(produit)}
+                  onClick={() => ajouterAuPanier(produit, quantiteSelectionnee[produit.id] || 1)}
                   style={{
-                    width: '100%',
-                    padding: '12px',
+                    padding: '12px 24px',
                     backgroundColor: '#0071e3',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '980px',
+                    borderRadius: '12px',
                     fontSize: '15px',
                     fontWeight: '500',
                     cursor: 'pointer',
-                    transition: 'background-color 0.3s ease'
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap'
                   }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#0077ED'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#0071e3'}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#0077ED'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#0071e3'}
                 >
-                  Ajouter au panier
+                  Ajouter
                 </button>
               </div>
             </div>
@@ -264,145 +315,177 @@ export default function CatalogueCommande() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.4)',
+          backgroundColor: 'rgba(0,0,0,0.48)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           zIndex: 1000,
-          padding: '24px'
-        }}>
+          padding: '24px',
+          backdropFilter: 'blur(20px)'
+        }}
+        onClick={() => setPanierOuvert(false)}
+        >
           <div style={{
             backgroundColor: 'white',
-            borderRadius: '18px',
-            maxWidth: '600px',
+            borderRadius: '28px',
+            maxWidth: '640px',
             width: '100%',
             maxHeight: '90vh',
             overflow: 'auto',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.15)'
-          }}>
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
             {montrerMerci ? (
               <div style={{ 
                 textAlign: 'center', 
                 padding: '80px 40px'
               }}>
                 <div style={{ 
-                  fontSize: '64px', 
-                  marginBottom: '16px' 
+                  fontSize: '72px', 
+                  marginBottom: '24px',
+                  fontWeight: '300'
                 }}>
                   ✓
                 </div>
                 <h2 style={{ 
-                  fontSize: '32px', 
+                  fontSize: '40px', 
                   fontWeight: '600', 
                   color: '#1d1d1f',
-                  margin: '0 0 12px 0'
+                  margin: '0 0 12px 0',
+                  letterSpacing: '-0.02em'
                 }}>
-                  Commande envoyée
+                  Merci
                 </h2>
                 <p style={{ 
-                  fontSize: '17px', 
-                  color: '#6e6e73',
-                  margin: 0
+                  fontSize: '19px', 
+                  color: '#86868b',
+                  margin: 0,
+                  fontWeight: '400'
                 }}>
-                  Merci pour votre commande
+                  Votre commande a été envoyée
                 </p>
               </div>
             ) : (
               <>
                 <div style={{ 
-                  padding: '32px',
-                  borderBottom: '1px solid #d2d2d7'
+                  padding: '40px 40px 32px',
+                  borderBottom: '1px solid rgba(0,0,0,0.04)'
                 }}>
-                  <h2 style={{ 
-                    margin: '0 0 8px 0', 
-                    fontSize: '28px', 
-                    fontWeight: '600',
-                    color: '#1d1d1f'
-                  }}>
-                    Votre panier
-                  </h2>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 style={{ 
+                      margin: 0, 
+                      fontSize: '32px', 
+                      fontWeight: '600',
+                      color: '#1d1d1f',
+                      letterSpacing: '-0.02em'
+                    }}>
+                      Panier
+                    </h2>
+                    <button
+                      onClick={() => setPanierOuvert(false)}
+                      style={{
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        fontSize: '28px',
+                        color: '#86868b',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        lineHeight: '1'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
                   <p style={{ 
-                    margin: 0, 
-                    color: '#6e6e73',
-                    fontSize: '15px'
+                    margin: '8px 0 0 0', 
+                    color: '#86868b',
+                    fontSize: '17px',
+                    fontWeight: '400'
                   }}>
                     {totalArticles} article{totalArticles > 1 ? 's' : ''}
                   </p>
                 </div>
 
-                <div style={{ padding: '32px' }}>
+                <div style={{ padding: '32px 40px 40px' }}>
                   {panier.length === 0 ? (
                     <p style={{ 
                       textAlign: 'center', 
-                      color: '#6e6e73',
-                      fontSize: '17px'
+                      color: '#86868b',
+                      fontSize: '19px',
+                      padding: '40px 0',
+                      margin: 0
                     }}>
                       Votre panier est vide
                     </p>
                   ) : (
                     <>
-                      {panier.map(item => (
-                        <div key={item.id} style={{ 
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '16px 0',
-                          borderBottom: '1px solid #f5f5f7'
-                        }}>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ 
-                              margin: '0 0 4px 0',
-                              fontSize: '17px',
-                              fontWeight: '500',
-                              color: '#1d1d1f'
-                            }}>
-                              {item.couleur}
-                            </p>
-                            <p style={{ 
-                              margin: 0,
-                              fontSize: '14px',
-                              color: '#6e6e73'
-                            }}>
-                              {item.reference}
-                            </p>
-                          </div>
-                          <div style={{ 
+                      <div style={{ marginBottom: '32px' }}>
+                        {panier.map(item => (
+                          <div key={item.id} style={{ 
                             display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'center',
-                            gap: '12px'
+                            padding: '20px 0',
+                            borderBottom: '1px solid rgba(0,0,0,0.04)'
                           }}>
-                            <input 
-                              type="number"
-                              min="0"
-                              value={item.quantite}
-                              onChange={(e) => updateQuantite(item.id, e.target.value)}
-                              style={{ 
-                                width: '60px',
-                                padding: '8px',
-                                border: '1px solid #d2d2d7',
-                                borderRadius: '8px',
-                                fontSize: '15px',
-                                textAlign: 'center'
-                              }}
-                            />
+                            <div style={{ flex: 1 }}>
+                              <p style={{ 
+                                margin: '0 0 4px 0',
+                                fontSize: '17px',
+                                fontWeight: '600',
+                                color: '#1d1d1f'
+                              }}>
+                                {item.couleur}
+                              </p>
+                              <p style={{ 
+                                margin: 0,
+                                fontSize: '14px',
+                                color: '#86868b'
+                              }}>
+                                {item.reference}
+                              </p>
+                            </div>
+                            <div style={{ 
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '16px'
+                            }}>
+                              <input 
+                                type="number"
+                                min="0"
+                                value={item.quantite}
+                                onChange={(e) => updateQuantite(item.id, e.target.value)}
+                                style={{ 
+                                  width: '70px',
+                                  padding: '10px',
+                                  border: '1px solid #d2d2d7',
+                                  borderRadius: '10px',
+                                  fontSize: '17px',
+                                  textAlign: 'center',
+                                  fontWeight: '500'
+                                }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
 
-                      <div style={{ marginTop: '32px' }}>
+                      <div style={{ marginBottom: '32px' }}>
                         <input 
                           type="text"
-                          placeholder="Nom *"
+                          placeholder="Nom"
                           value={nomClient}
                           onChange={(e) => setNomClient(e.target.value)}
                           style={{ 
                             width: '100%',
-                            padding: '14px',
+                            padding: '16px',
                             marginBottom: '12px',
                             border: '1px solid #d2d2d7',
                             borderRadius: '12px',
                             fontSize: '17px',
-                            boxSizing: 'border-box'
+                            boxSizing: 'border-box',
+                            fontFamily: 'inherit'
                           }}
                         />
                         
@@ -413,12 +496,13 @@ export default function CatalogueCommande() {
                           onChange={(e) => setEmailClient(e.target.value)}
                           style={{ 
                             width: '100%',
-                            padding: '14px',
+                            padding: '16px',
                             marginBottom: '12px',
                             border: '1px solid #d2d2d7',
                             borderRadius: '12px',
                             fontSize: '17px',
-                            boxSizing: 'border-box'
+                            boxSizing: 'border-box',
+                            fontFamily: 'inherit'
                           }}
                         />
                         
@@ -428,11 +512,11 @@ export default function CatalogueCommande() {
                           onChange={(e) => setCommentaire(e.target.value)}
                           style={{ 
                             width: '100%',
-                            padding: '14px',
+                            padding: '16px',
                             border: '1px solid #d2d2d7',
                             borderRadius: '12px',
                             fontSize: '17px',
-                            minHeight: '80px',
+                            minHeight: '100px',
                             boxSizing: 'border-box',
                             fontFamily: 'inherit',
                             resize: 'vertical'
@@ -440,45 +524,24 @@ export default function CatalogueCommande() {
                         />
                       </div>
 
-                      <div style={{ 
-                        marginTop: '24px',
-                        display: 'flex',
-                        gap: '12px'
-                      }}>
-                        <button
-                          onClick={envoyerCommande}
-                          disabled={envoiEnCours}
-                          style={{
-                            flex: 1,
-                            padding: '14px',
-                            backgroundColor: envoiEnCours ? '#d2d2d7' : '#0071e3',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '980px',
-                            fontSize: '17px',
-                            fontWeight: '500',
-                            cursor: envoiEnCours ? 'not-allowed' : 'pointer'
-                          }}
-                        >
-                          {envoiEnCours ? 'Envoi...' : 'Commander'}
-                        </button>
-                        
-                        <button
-                          onClick={() => setPanierOuvert(false)}
-                          style={{
-                            padding: '14px 24px',
-                            backgroundColor: 'transparent',
-                            color: '#0071e3',
-                            border: 'none',
-                            borderRadius: '980px',
-                            fontSize: '17px',
-                            fontWeight: '500',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Fermer
-                        </button>
-                      </div>
+                      <button
+                        onClick={envoyerCommande}
+                        disabled={envoiEnCours}
+                        style={{
+                          width: '100%',
+                          padding: '16px',
+                          backgroundColor: envoiEnCours ? '#d2d2d7' : '#0071e3',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '12px',
+                          fontSize: '17px',
+                          fontWeight: '600',
+                          cursor: envoiEnCours ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {envoiEnCours ? 'Envoi en cours...' : 'Commander'}
+                      </button>
                     </>
                   )}
                 </div>
