@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 
 // --- CONFIGURATION DES DONNÉES ---
 const COLLECTIONS = {
@@ -49,7 +49,7 @@ export default function Home() {
     if (existe) {
       setPanier(panier.map(p => p.id === produit.id ? { ...p, quantite: p.quantite + quantite, commentaire: commentaireP } : p));
     } else {
-      setPanier([...panier, { ...produit, quantite, commentaire: commentaireP }]);
+      setPanier([...panier, { ...produit, quantite: parseInt(quantite), commentaire: commentaireP }]);
     }
     
     setFeedbackAjout({ ...feedbackAjout, [produit.id]: true });
@@ -58,8 +58,11 @@ export default function Home() {
 
   const updateQuantite = (id, qte) => {
     const n = parseInt(qte);
-    if (n <= 0) setPanier(panier.filter(p => p.id !== id));
-    else setPanier(panier.map(p => p.id === id ? { ...p, quantite: n } : p));
+    if (n <= 0) {
+      setPanier(panier.filter(p => p.id !== id));
+    } else {
+      setPanier(panier.map(p => p.id === id ? { ...p, quantite: n } : p));
+    }
   };
 
   const envoyerCommande = async () => {
@@ -91,25 +94,26 @@ export default function Home() {
   return (
     <div style={{ backgroundColor: '#f5f5f7', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', color: '#1d1d1f' }}>
       
-      {/* HEADER FIXE */}
+      {/* HEADER FIXE AVEC NAVIGATION ROULETTE */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255,255,255,0.8)', backdropFilter: 'saturate(180%) blur(20px)', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '10px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
             <img src="/images/mugs/logo.jpeg" alt="Logo" style={{ height: '28px', borderRadius: '6px' }} />
-            <button onClick={() => setPanierOuvert(true)} style={{ background: '#1d1d1f', border: 'none', borderRadius: '20px', padding: '6px 14px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              onClick={() => setPanierOuvert(true)} 
+              style={{ background: '#1d1d1f', border: 'none', borderRadius: '20px', padding: '8px 16px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
               Panier {totalArticles > 0 && <span style={{ background: '#ff3b30', padding: '1px 6px', borderRadius: '10px', fontSize: '11px' }}>{totalArticles}</span>}
             </button>
           </div>
 
-          {/* ROULETTE DE NAVIGATION (SCROLL HORIZONTAL) */}
           <div style={{ 
             display: 'flex', 
-            gap: '10px', 
+            gap: '8px', 
             overflowX: 'auto', 
-            padding: '4px 0 10px 0',
-            scrollbarWidth: 'none', // Cache la barre sur Firefox
-            msOverflowStyle: 'none', // Cache la barre sur IE
-            WebkitOverflowScrolling: 'touch'
+            paddingBottom: '5px',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none'
           }}>
             <style>{`div::-webkit-scrollbar { display: none; }`}</style>
             {[
@@ -123,16 +127,15 @@ export default function Home() {
                 onClick={() => setCollectionActive(tab.id)}
                 style={{
                   flexShrink: 0,
-                  whiteSpace: 'nowrap',
                   border: 'none',
-                  padding: '10px 20px',
+                  padding: '10px 22px',
                   borderRadius: '20px',
                   fontSize: '14px',
                   fontWeight: '600',
                   cursor: 'pointer',
                   backgroundColor: collectionActive === tab.id ? (tab.id === 'nouveautes' || tab.id === 'discount' ? tab.bg : '#1d1d1f') : 'transparent',
                   color: collectionActive === tab.id ? (tab.id === 'nouveautes' || tab.id === 'discount' ? tab.tc : '#fff') : '#86868b',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  transition: 'all 0.2s ease'
                 }}
               >
                 {tab.label}
@@ -144,26 +147,23 @@ export default function Home() {
 
       {/* GRID PRODUITS */}
       <main style={{ maxWidth: '1200px', margin: '20px auto', padding: '0 20px 100px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
           {produitsActifs.map(produit => (
-            <div key={produit.id} style={{ backgroundColor: '#fff', borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-              <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                <img src={produit.image} alt={produit.reference} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} loading="lazy" onError={(e) => e.target.src = 'https://via.placeholder.com/200'} />
+            <div key={produit.id} style={{ backgroundColor: '#fff', borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column', border: '1px solid rgba(0,0,0,0.03)' }}>
+              <div style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                <img src={produit.image} alt={produit.reference} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} loading="lazy" />
               </div>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', margin: '0 0 4px 0' }}>{produit.couleur}</h3>
+              <p style={{ color: '#86868b', fontSize: '14px', margin: '0 0 16px 0' }}>{produit.reference}</p>
               
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', margin: '0 0 4px 0' }}>{produit.couleur}</h3>
-                <p style={{ color: '#86868b', fontSize: '14px', margin: '0 0 16px 0' }}>{produit.reference}</p>
-                
-                <textarea 
-                  placeholder="Commentaire..."
-                  value={commentairesProduits[produit.id] || ''}
-                  onChange={(e) => setCommentairesProduits({...commentairesProduits, [produit.id]: e.target.value})}
-                  style={{ width: '100%', border: '1px solid #d2d2d7', borderRadius: '12px', padding: '12px', fontSize: '14px', marginBottom: '16px', fontFamily: 'inherit', resize: 'none', height: '50px', outline: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
+              <textarea 
+                placeholder="Ajouter une note..."
+                value={commentairesProduits[produit.id] || ''}
+                onChange={(e) => setCommentairesProduits({...commentairesProduits, [produit.id]: e.target.value})}
+                style={{ width: '100%', border: '1px solid #d2d2d7', borderRadius: '12px', padding: '12px', fontSize: '14px', marginBottom: '16px', fontFamily: 'inherit', resize: 'none', height: '60px', outline: 'none' }}
+              />
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: 'auto' }}>
                 <select 
                   value={quantiteSelectionnee[produit.id] || 1}
                   onChange={(e) => setQuantiteSelectionnee({...quantiteSelectionnee, [produit.id]: parseInt(e.target.value)})}
@@ -192,25 +192,31 @@ export default function Home() {
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(15px)', zIndex: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={() => setPanierOuvert(false)}>
           <div style={{ backgroundColor: '#fff', width: '90%', maxWidth: '500px', borderRadius: '28px', padding: '24px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             {montrerMerci ? (
-              <div style={{ textAlign: 'center', padding: '40px 0' }}><h2>✅ Commande reçue !</h2></div>
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <h2 style={{ fontSize: '40px', margin: '0' }}>✅</h2>
+                <h2 style={{ fontSize: '24px', marginTop: '10px' }}>Commande enregistrée !</h2>
+              </div>
             ) : (
               <>
-                <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '20px' }}>Panier</h2>
-                {panier.length === 0 ? <p style={{ color: '#86868b' }}>Vide</p> : (
+                <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '24px' }}>Panier</h2>
+                {panier.length === 0 ? <p style={{ textAlign: 'center', color: '#86868b', padding: '20px 0' }}>Votre panier est vide</p> : (
                   <>
-                    {panier.map(item => (
-                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f5f5f7' }}>
-                        <div>
-                          <div style={{ fontWeight: '600' }}>{item.reference}</div>
-                          <div style={{ fontSize: '12px', color: '#86868b' }}>{item.couleur}</div>
+                    <div style={{ marginBottom: '24px' }}>
+                      {panier.map(item => (
+                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f5f5f7' }}>
+                          <div>
+                            <div style={{ fontWeight: '600' }}>{item.reference}</div>
+                            <div style={{ fontSize: '12px', color: '#86868b' }}>{item.couleur}</div>
+                            {item.commentaire && <div style={{ fontSize: '11px', color: '#ff3b30' }}>Note: {item.commentaire}</div>}
+                          </div>
+                          <input type="number" min="0" value={item.quantite} onChange={(e) => updateQuantite(item.id, e.target.value)} style={{ width: '60px', padding: '8px', border: '1px solid #d2d2d7', borderRadius: '8px', textAlign: 'center' }} />
                         </div>
-                        <input type="number" value={item.quantite} onChange={(e) => updateQuantite(item.id, e.target.value)} style={{ width: '50px', border: '1px solid #d2d2d7', borderRadius: '6px', textAlign: 'center' }} />
-                      </div>
-                    ))}
-                    <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <input placeholder="Votre Nom" value={nomClient} onChange={(e) => setNomClient(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #d2d2d7' }} />
-                      <button onClick={envoyerCommande} disabled={envoiEnCours} style={{ width: '100%', padding: '16px', backgroundColor: '#0071e3', color: '#fff', border: 'none', borderRadius: '14px', fontWeight: '600', cursor: 'pointer' }}>
-                        {envoiEnCours ? 'Envoi...' : 'Commander'}
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <input placeholder="Votre Nom" value={nomClient} onChange={(e) => setNomClient(e.target.value)} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #d2d2d7', fontSize: '16px' }} />
+                      <button onClick={envoyerCommande} disabled={envoiEnCours} style={{ width: '100%', padding: '16px', backgroundColor: '#0071e3', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '600', fontSize: '17px', cursor: 'pointer' }}>
+                        {envoiEnCours ? 'Envoi...' : 'Confirmer la commande'}
                       </button>
                     </div>
                   </>
