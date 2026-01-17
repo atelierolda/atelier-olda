@@ -39,128 +39,164 @@ export default function Home() {
   const produitsActifs = useMemo(() => COLLECTIONS[collectionActive] || [], [collectionActive]);
   const totalArticles = panier.reduce((sum, item) => sum + item.quantite, 0);
 
-  // Stepper fluide de 1 à 50
-  const ajusterQuantite = (id, delta) => {
-    const actuelle = quantites[id] || 1;
-    const nouvelle = actuelle + delta;
-    if (nouvelle >= 1 && nouvelle <= 50) {
-      setQuantites({ ...quantites, [id]: nouvelle });
-    }
+  const tabs = [
+    { id: 'nouveautes', label: 'Nouveautés' },
+    { id: 'olda', label: 'Collection OLDA' },
+    { id: 'fuck', label: 'Collection FUCK' },
+    { id: 'discount', label: 'Discount' }
+  ];
+
+  // Stepper Premium : Minimum 3
+  const ajusterQte = (id, delta) => {
+    setQuantites(prev => {
+      const actuelle = prev[id] || 3;
+      const nouvelle = actuelle + delta;
+      if (nouvelle < 3) return { ...prev, [id]: 3 };
+      if (nouvelle > 50) return { ...prev, [id]: 50 };
+      return { ...prev, [id]: nouvelle };
+    });
   };
 
-  const ajouterAuPanier = (produit) => {
-    const qte = quantites[produit.id] || 1;
-    const comm = commentairesProduits[produit.id] || '';
-    const existe = panier.find(p => p.id === produit.id);
+  const ajouterAuPanier = (p) => {
+    const qte = quantites[p.id] || 3;
+    const comm = commentairesProduits[p.id] || '';
+    const existe = panier.find(i => i.id === p.id);
     
     if (existe) {
-      setPanier(panier.map(p => p.id === produit.id ? { ...p, quantite: p.quantite + qte, commentaire: comm } : p));
+      setPanier(panier.map(i => i.id === p.id ? { ...i, quantite: i.quantite + qte, commentaire: comm } : i));
     } else {
-      setPanier([...panier, { ...produit, quantite: qte, commentaire: comm }]);
+      setPanier([...panier, { ...p, quantite: qte, commentaire: comm }]);
     }
     
-    setFeedbackAjout({ ...feedbackAjout, [produit.id]: true });
-    setTimeout(() => setFeedbackAjout({ ...feedbackAjout, [produit.id]: false }), 2000);
+    setFeedbackAjout({ ...feedbackAjout, [p.id]: true });
+    setTimeout(() => setFeedbackAjout({ ...feedbackAjout, [p.id]: false }), 1500);
+  };
+
+  const envoyerCommande = async () => {
+    if (!nomClient || panier.length === 0) {
+      alert('Veuillez renseigner votre nom et ajouter des produits');
+      return;
+    }
+    setEnvoiEnCours(true);
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nomClient, panier })
+      });
+      if (response.ok) {
+        setMontrerMerci(true);
+        setTimeout(() => {
+          setPanier([]); setNomClient(''); setMontrerMerci(false); setPanierOuvert(false);
+        }, 3000);
+      }
+    } catch (e) {
+      alert("Erreur d'envoi");
+    } finally {
+      setEnvoiEnCours(false);
+    }
   };
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: '-apple-system, system-ui, sans-serif', color: '#1d1d1f' }}>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: '-apple-system, sans-serif', color: '#1d1d1f' }}>
       
-      {/* NAVIGATION COLLECTIONS */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'saturate(180%) blur(20px)', borderBottom: '1px solid #d2d2d7' }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '12px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <img src="/images/mugs/logo.jpeg" alt="Atelier OLDA" style={{ height: '24px', borderRadius: '4px' }} />
-            <button 
-              onClick={() => setPanierOuvert(true)} 
-              style={{ background: 'none', border: 'none', color: '#0066cc', fontSize: '14px', fontWeight: '400', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
-            >
-              Panier {totalArticles > 0 && <span style={{ backgroundColor: '#1d1d1f', color: '#fff', padding: '2px 7px', borderRadius: '10px', fontSize: '11px' }}>{totalArticles}</span>}
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: '25px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '5px' }}>
+      {/* NAVIGATION ROULETTE COLLECTIONS */}
+      <nav style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255,255,255,0.8)', backdropFilter: 'saturate(180%) blur(20px)', borderBottom: '1px solid #d2d2d7' }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '15px' }}>
+          <img src="/images/mugs/logo.jpeg" style={{ height: '25px', marginRight: '10px', borderRadius: '4px' }} alt="Logo" />
+          <div style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', gap: '15px', padding: '5px 10px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
             <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-            {[
-              { id: 'nouveautes', label: 'Nouveautés' },
-              { id: 'olda', label: 'Collection OLDA' },
-              { id: 'fuck', label: 'Collection FUCK' },
-              { id: 'discount', label: 'Discount' }
-            ].map(tab => (
+            {tabs.map(tab => (
               <button 
                 key={tab.id}
                 onClick={() => setCollectionActive(tab.id)}
                 style={{
-                  flexShrink: 0, border: 'none', background: 'none', padding: '8px 0', fontSize: '14px', fontWeight: '500', cursor: 'pointer',
-                  color: collectionActive === tab.id ? '#1d1d1f' : '#86868b',
-                  borderBottom: collectionActive === tab.id ? '2px solid #1d1d1f' : '2px solid transparent',
-                  transition: '0.2s'
+                  flex: '0 0 140px', scrollSnapAlign: 'center', padding: '10px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                  backgroundColor: collectionActive === tab.id ? '#f5f5f7' : 'transparent',
+                  color: collectionActive === tab.id ? '#000' : '#86868b',
+                  transition: '0.3s'
                 }}
               >
                 {tab.label}
               </button>
             ))}
           </div>
+          <button onClick={() => setPanierOuvert(true)} style={{ background: 'none', border: 'none', color: '#0066cc', fontSize: '14px', cursor: 'pointer', marginLeft: 'auto' }}>
+            Panier ({totalArticles})
+          </button>
         </div>
       </nav>
 
-      {/* TITRE DE LA COLLECTION */}
-      <header style={{ maxWidth: '1000px', margin: '50px auto 30px', padding: '0 20px' }}>
-        <h1 style={{ fontSize: '40px', fontWeight: '700', letterSpacing: '-0.5px' }}>
-          {collectionActive === 'nouveautes' && "Nouveautés"}
-          {collectionActive === 'olda' && "Collection OLDA"}
-          {collectionActive === 'fuck' && "Collection FUCK"}
-          {collectionActive === 'discount' && "Discount"}
+      {/* TITRE & GRILLE */}
+      <main style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 20px 100px' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: '700', marginBottom: '40px' }}>
+          {tabs.find(t => t.id === collectionActive).label}
         </h1>
-      </header>
 
-      {/* GRILLE DE PRODUITS */}
-      <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px 100px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '40px' }}>
-          {produitsActifs.map(produit => (
-            <div key={produit.id} style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ backgroundColor: '#f5f5f7', borderRadius: '18px', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '15px' }}>
-                <img src={produit.image} alt={produit.reference} style={{ height: '80%', objectFit: 'contain' }} />
+          {produitsActifs.map(p => (
+            <div key={p.id} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ background: '#f5f5f7', borderRadius: '22px', padding: '30px', textAlign: 'center', marginBottom: '15px' }}>
+                <img src={p.image} style={{ height: '200px', objectFit: 'contain' }} alt={p.couleur} />
               </div>
+              <h3 style={{ fontSize: '19px', fontWeight: '600', margin: '0' }}>{p.couleur}</h3>
+              <p style={{ color: '#86868b', margin: '5px 0 20px' }}>Réf: {p.reference}</p>
               
-              <div style={{ padding: '0 5px' }}>
-                <h3 style={{ fontSize: '19px', fontWeight: '600', margin: '0' }}>{produit.couleur}</h3>
-                <p style={{ color: '#86868b', fontSize: '14px', margin: '4px 0 15px 0' }}>Référence {produit.reference}</p>
-                
-                <textarea 
-                  placeholder="Instructions de préparation..."
-                  onChange={(e) => setCommentairesProduits({...commentairesProduits, [produit.id]: e.target.value})}
-                  style={{ width: '100%', border: '1px solid #d2d2d7', borderRadius: '12px', padding: '12px', fontSize: '14px', height: '50px', resize: 'none', marginBottom: '15px', outlineColor: '#0066cc' }}
-                />
+              <textarea 
+                placeholder="Note de préparation..."
+                onChange={(e) => setCommentairesProduits({...commentairesProduits, [p.id]: e.target.value})}
+                style={{ width: '100%', border: '1px solid #d2d2d7', borderRadius: '12px', padding: '12px', height: '50px', resize: 'none', marginBottom: '15px', outlineColor: '#0066cc' }}
+              />
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-                  {/* STEPPER HAUT DE GAMME */}
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #d2d2d7', borderRadius: '10px', overflow: 'hidden', height: '36px' }}>
-                    <button onClick={() => ajusterQuantite(produit.id, -1)} style={{ border: 'none', background: '#fff', width: '36px', cursor: 'pointer', fontSize: '18px', color: '#1d1d1f' }}>−</button>
-                    <span style={{ width: '34px', textAlign: 'center', fontSize: '14px', fontWeight: '600', borderLeft: '1px solid #d2d2d7', borderRight: '1px solid #d2d2d7', lineHeight: '36px', background: '#fff' }}>
-                      {quantites[produit.id] || 1}
-                    </span>
-                    <button onClick={() => ajusterQuantite(produit.id, 1)} style={{ border: 'none', background: '#fff', width: '36px', cursor: 'pointer', fontSize: '18px', color: '#1d1d1f' }}>+</button>
-                  </div>
-
-                  {/* BOUTON AJOUTER APPLE STYLE */}
-                  <button 
-                    onClick={() => ajouterAuPanier(produit)}
-                    style={{
-                      backgroundColor: feedbackAjout[produit.id] ? '#1d1d1f' : '#0071e3',
-                      color: '#fff', border: 'none', borderRadius: '20px', padding: '8px 20px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s'
-                    }}
-                  >
-                    {feedbackAjout[produit.id] ? '✓ Ajouté' : 'Ajouter'}
-                  </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: 'auto' }}>
+                {/* STEPPER PREMIUM */}
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #d2d2d7', borderRadius: '12px', overflow: 'hidden' }}>
+                  <button onClick={() => ajusterQte(p.id, -1)} style={{ border: 'none', background: '#fff', width: '35px', height: '35px', cursor: 'pointer', opacity: (quantites[p.id] || 3) <= 3 ? 0.3 : 1 }} disabled={(quantites[p.id] || 3) <= 3}>−</button>
+                  <span style={{ width: '30px', textAlign: 'center', fontWeight: '600' }}>{quantites[p.id] || 3}</span>
+                  <button onClick={() => ajusterQte(p.id, 1)} style={{ border: 'none', background: '#fff', width: '35px', height: '35px', cursor: 'pointer' }}>+</button>
                 </div>
+
+                <button 
+                  onClick={() => ajouterAuPanier(p)}
+                  style={{
+                    flex: 1, backgroundColor: feedbackAjout[p.id] ? '#1d1d1f' : '#0071e3', color: '#fff',
+                    border: 'none', borderRadius: '20px', padding: '10px', fontWeight: '600', cursor: 'pointer', transition: '0.3s'
+                  }}
+                >
+                  {feedbackAjout[p.id] ? 'Ajouté ✓' : 'Ajouter'}
+                </button>
               </div>
             </div>
           ))}
         </div>
       </main>
-      
-      {/* ... (Modal panier identique à précédemment mais avec design épuré) */}
+
+      {/* MODAL PANIER */}
+      {panierOuvert && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(15px)', zIndex: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={() => setPanierOuvert(false)}>
+          <div style={{ backgroundColor: '#fff', width: '90%', maxWidth: '500px', borderRadius: '28px', padding: '30px' }} onClick={e => e.stopPropagation()}>
+            {montrerMerci ? (
+              <h2 style={{ textAlign: 'center' }}>✅ Commande reçue !</h2>
+            ) : (
+              <>
+                <h2 style={{ margin: '0 0 20px' }}>Votre Panier</h2>
+                {panier.map(item => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderBottom: '1px solid #f5f5f7' }}>
+                    <div>
+                      <div style={{ fontWeight: '600' }}>{item.couleur}</div>
+                      <div style={{ fontSize: '12px', color: '#86868b' }}>Qte: {item.quantite}</div>
+                    </div>
+                  </div>
+                ))}
+                <input placeholder="Votre Nom" value={nomClient} onChange={(e) => setNomClient(e.target.value)} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #d2d2d7', margin: '20px 0', fontSize: '16px' }} />
+                <button onClick={envoyerCommande} disabled={envoiEnCours} style={{ width: '100%', padding: '15px', background: '#0071e3', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '600', cursor: 'pointer' }}>
+                  {envoiEnCours ? 'Envoi...' : 'Confirmer la commande'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
