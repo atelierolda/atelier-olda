@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 
 export default function CatalogueCommande() {
-  const [produits] = useState([
+  const [collectionActive, setCollectionActive] = useState('olda');
+  
+  const [produitsOlda] = useState([
     { id: 1, reference: 'TC 01', image: '/images/mugs/roseblanc.jpg', couleur: 'Rose & Blanc', quantite: 0 },
     { id: 2, reference: 'TC 02', image: '/images/mugs/rougeblanc.jpg', couleur: 'Rouge & Blanc', quantite: 0 },
     { id: 3, reference: 'TC 03', image: '/images/mugs/orangeblanc.jpg', couleur: 'Orange & Blanc', quantite: 0 },
@@ -14,8 +16,15 @@ export default function CatalogueCommande() {
     { id: 10, reference: 'TC 10', image: '/images/mugs/noirvert.JPG', couleur: 'Noir & Vert', quantite: 0 }
   ]);
 
+  const [produitsFuck] = useState([
+    { id: 11, reference: 'TF 01', image: '/images/mugs/fuck1.jpg', couleur: 'Design 1', quantite: 0 },
+    { id: 12, reference: 'TF 02', image: '/images/mugs/fuck2.jpg', couleur: 'Design 2', quantite: 0 },
+    // Ajoutez vos autres tasses FUCK ici
+  ]);
+
   const [panier, setPanier] = useState([]);
   const [quantiteSelectionnee, setQuantiteSelectionnee] = useState({});
+  const [commentairesProduits, setCommentairesProduits] = useState({});
   const [panierOuvert, setPanierOuvert] = useState(false);
   const [nomClient, setNomClient] = useState('');
   const [emailClient, setEmailClient] = useState('');
@@ -23,16 +32,20 @@ export default function CatalogueCommande() {
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [montrerMerci, setMontrerMerci] = useState(false);
 
+  const produitsActifs = collectionActive === 'olda' ? produitsOlda : produitsFuck;
+
   const ajouterAuPanier = (produit, quantite) => {
     if (quantite <= 0) return;
     
     const existe = panier.find(p => p.id === produit.id);
+    const commentaireProduit = commentairesProduits[produit.id] || '';
+    
     if (existe) {
       setPanier(panier.map(p => 
-        p.id === produit.id ? { ...p, quantite: p.quantite + quantite } : p
+        p.id === produit.id ? { ...p, quantite: p.quantite + quantite, commentaire: commentaireProduit } : p
       ));
     } else {
-      setPanier([...panier, { ...produit, quantite: quantite }]);
+      setPanier([...panier, { ...produit, quantite: quantite, commentaire: commentaireProduit }]);
     }
     
     setQuantiteSelectionnee({ ...quantiteSelectionnee, [produit.id]: 1 });
@@ -79,6 +92,7 @@ export default function CatalogueCommande() {
           setNomClient('');
           setEmailClient('');
           setCommentaire('');
+          setCommentairesProduits({});
           setMontrerMerci(false);
           setPanierOuvert(false);
         }, 4000);
@@ -100,7 +114,7 @@ export default function CatalogueCommande() {
       minHeight: '100vh',
       backgroundColor: '#fbfbfd'
     }}>
-      {/* Header ultra minimaliste */}
+      {/* Header */}
       <nav style={{
         position: 'sticky',
         top: 0,
@@ -119,7 +133,7 @@ export default function CatalogueCommande() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          {/* Logo OLDA avec le bon chemin */}
+          {/* Logo */}
           <img 
             src="/images/mugs/logo.jpeg" 
             alt="Olda" 
@@ -130,7 +144,74 @@ export default function CatalogueCommande() {
             }}
           />
           
-          {/* Icône panier */}
+          {/* Onglets Collections */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '24px',
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)'
+          }}>
+            <button
+              onClick={() => setCollectionActive('olda')}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: '500',
+                color: collectionActive === 'olda' ? '#1d1d1f' : '#86868b',
+                padding: '8px 12px',
+                position: 'relative',
+                transition: 'color 0.2s'
+              }}
+            >
+              Tasse OLDA
+              {collectionActive === 'olda' && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '0',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '80%',
+                  height: '2px',
+                  backgroundColor: '#1d1d1f',
+                  borderRadius: '2px'
+                }} />
+              )}
+            </button>
+            
+            <button
+              onClick={() => setCollectionActive('fuck')}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: '500',
+                color: collectionActive === 'fuck' ? '#1d1d1f' : '#86868b',
+                padding: '8px 12px',
+                position: 'relative',
+                transition: 'color 0.2s'
+              }}
+            >
+              Tasse FUCK
+              {collectionActive === 'fuck' && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '0',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '80%',
+                  height: '2px',
+                  backgroundColor: '#1d1d1f',
+                  borderRadius: '2px'
+                }} />
+              )}
+            </button>
+          </div>
+          
+          {/* Panier */}
           <button
             onClick={() => setPanierOuvert(true)}
             style={{
@@ -165,7 +246,7 @@ export default function CatalogueCommande() {
         </div>
       </nav>
 
-      {/* Hero épuré */}
+      {/* Hero */}
       <div style={{
         textAlign: 'center',
         padding: '80px 20px 60px',
@@ -180,11 +261,11 @@ export default function CatalogueCommande() {
           letterSpacing: '-0.03em',
           lineHeight: '1.05'
         }}>
-          Catalogue Tasse OLDA
+          {collectionActive === 'olda' ? 'Catalogue Tasse OLDA' : 'Catalogue Tasse FUCK'}
         </h1>
       </div>
 
-      {/* Grid produits minimaliste */}
+      {/* Grid produits */}
       <div style={{
         maxWidth: '1200px',
         margin: '0 auto',
@@ -195,20 +276,19 @@ export default function CatalogueCommande() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', 
           gap: '16px'
         }}>
-          {produits.map(produit => (
+          {produitsActifs.map(produit => (
             <div key={produit.id} style={{
               backgroundColor: 'white',
               borderRadius: '20px',
               padding: '24px',
-              border: '1px solid rgba(0,0,0,0.03)',
-              transition: 'transform 0.2s, box-shadow 0.2s'
+              border: '1px solid rgba(0,0,0,0.03)'
             }}>
-              {/* Image à gauche + Texte */}
+              {/* Image + Texte */}
               <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '16px',
-                marginBottom: '20px'
+                marginBottom: '16px'
               }}>
                 {produit.image && (
                   <img 
@@ -245,7 +325,30 @@ export default function CatalogueCommande() {
                 </div>
               </div>
               
-              {/* Dropdown + Bouton compact */}
+              {/* Champ commentaire produit */}
+              <textarea
+                placeholder="Commentaire (optionnel)"
+                value={commentairesProduits[produit.id] || ''}
+                onChange={(e) => setCommentairesProduits({
+                  ...commentairesProduits,
+                  [produit.id]: e.target.value
+                })}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  marginBottom: '12px',
+                  border: '1px solid #d2d2d7',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  minHeight: '60px',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                  color: '#1d1d1f'
+                }}
+              />
+              
+              {/* Dropdown + Bouton */}
               <div style={{ 
                 display: 'flex', 
                 gap: '10px',
@@ -421,46 +524,63 @@ export default function CatalogueCommande() {
                       <div style={{ marginBottom: '28px' }}>
                         {panier.map(item => (
                           <div key={item.id} style={{ 
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
                             padding: '18px 0',
                             borderBottom: '1px solid rgba(0,0,0,0.06)'
                           }}>
-                            <div style={{ flex: 1, minWidth: 0, paddingRight: '20px' }}>
-                              <p style={{ 
-                                margin: '0 0 5px 0',
-                                fontSize: '17px',
-                                fontWeight: '600',
-                                color: '#1d1d1f',
-                                letterSpacing: '-0.01em'
-                              }}>
-                                {item.couleur}
-                              </p>
-                              <p style={{ 
-                                margin: 0,
-                                fontSize: '14px',
-                                color: '#86868b'
-                              }}>
-                                {item.reference}
-                              </p>
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: item.commentaire ? '8px' : '0'
+                            }}>
+                              <div style={{ flex: 1, minWidth: 0, paddingRight: '20px' }}>
+                                <p style={{ 
+                                  margin: '0 0 5px 0',
+                                  fontSize: '17px',
+                                  fontWeight: '600',
+                                  color: '#1d1d1f',
+                                  letterSpacing: '-0.01em'
+                                }}>
+                                  {item.couleur}
+                                </p>
+                                <p style={{ 
+                                  margin: 0,
+                                  fontSize: '14px',
+                                  color: '#86868b'
+                                }}>
+                                  {item.reference}
+                                </p>
+                              </div>
+                              <input 
+                                type="number"
+                                min="0"
+                                value={item.quantite}
+                                onChange={(e) => updateQuantite(item.id, e.target.value)}
+                                style={{ 
+                                  width: '70px',
+                                  padding: '10px',
+                                  border: '1px solid #d2d2d7',
+                                  borderRadius: '10px',
+                                  fontSize: '16px',
+                                  textAlign: 'center',
+                                  fontWeight: '500',
+                                  color: '#1d1d1f'
+                                }}
+                              />
                             </div>
-                            <input 
-                              type="number"
-                              min="0"
-                              value={item.quantite}
-                              onChange={(e) => updateQuantite(item.id, e.target.value)}
-                              style={{ 
-                                width: '70px',
-                                padding: '10px',
-                                border: '1px solid #d2d2d7',
-                                borderRadius: '10px',
-                                fontSize: '16px',
-                                textAlign: 'center',
-                                fontWeight: '500',
-                                color: '#1d1d1f'
-                              }}
-                            />
+                            {item.commentaire && (
+                              <p style={{
+                                margin: '8px 0 0 0',
+                                fontSize: '14px',
+                                color: '#86868b',
+                                fontStyle: 'italic',
+                                padding: '8px 12px',
+                                backgroundColor: '#f5f5f7',
+                                borderRadius: '8px'
+                              }}>
+                                Note: {item.commentaire}
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -503,7 +623,7 @@ export default function CatalogueCommande() {
                         />
                         
                         <textarea 
-                          placeholder="Commentaire (optionnel)"
+                          placeholder="Commentaire général (optionnel)"
                           value={commentaire}
                           onChange={(e) => setCommentaire(e.target.value)}
                           style={{ 
